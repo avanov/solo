@@ -1,1 +1,2 @@
 autobahn[asyncio]==0.10.4
+PyYAML==3.11

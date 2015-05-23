@@ -59,6 +59,9 @@ setup(
         'test': PyTest,
     },
     entry_points={
+        'console_scripts': [
+            'soloapp = solo.cli:main'
+        ],
     },
     classifiers=[
         'Development Status :: 4 - Beta',
