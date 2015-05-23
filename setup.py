@@ -47,7 +47,6 @@ setup(
     version='0.0.1',
     description='Solo',
     long_description=README,
-    classifiers=[],
     author='Maxim Avanov',
     url='https://github.com/avanov/solo',
     packages=find_packages(),
