@@ -19,14 +19,23 @@ def main(args=None, stdout=None):
     try:
         cmd = CLI_COMMANDS[args.command]
     except KeyError:
-        print('Solo command "{cmd}" was not found.'.format(cmd=args.command))
-        sys.exit(1)
+        sys.exit('Solo command "{cmd}" was not found. Use one of the following: \n- {available}'.format(
+            cmd=args.command,
+            available='\n- '.join([c for c in CLI_COMMANDS.keys()])
+        ))
 
     cmd(args)
 
 
 def init_cmd(args):
-    print ("Init!\n")
+    """ Create an initial config in the current directory.
+    """
+    args = argparse.ArgumentParser(description='Compile plim source files into mako files.')
+
+
+INIT_CONFIG = """---
+# Solo App Config
+"""
 
 
 CLI_COMMANDS = {
