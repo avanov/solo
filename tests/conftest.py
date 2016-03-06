@@ -19,7 +19,7 @@ import warnings
 from aiohttp import web
 
 from solo.cli import parse_app_config
-from solo.server import init_app
+from solo.server import init_webapp
 
 
 class _AssertWarnsContext:
@@ -189,7 +189,7 @@ def create_server(loop, unused_port):
     async def create(*, debug=False, ssl_ctx=None, proto='http'):
         nonlocal app, handler, srv, config
 
-        app = await init_app(loop, config)
+        app = await init_webapp(loop, config)
         port = unused_port()
         handler = app.make_handler(debug=debug, keep_alive_on=False)
         srv = await loop.create_server(handler, '127.0.0.1', port,

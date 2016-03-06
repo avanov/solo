@@ -48,7 +48,7 @@ setup(name='solo',
       install_requires=requires,
       entry_points={
           'console_scripts': [
-              'runme = solo.cli:main'
+              'solo = solo.cli:main'
           ],
       }
     )

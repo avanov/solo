@@ -1,0 +1,2 @@
+""" Request-related shortcuts.
+"""
