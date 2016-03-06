@@ -1,2 +1,5 @@
-autobahn[asyncio]==0.10.4
-PyYAML==3.11
+aiohttp==0.21.2
+aiopg==0.9.2
+psycopg2==2.6.1
+sqlalchemy==1.0.12
+pyyaml==3.11

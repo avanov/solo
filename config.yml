@@ -1,0 +1,51 @@
+---
+debug: true
+server:
+  host: 0.0.0.0
+  port: 8000
+
+postgresql:
+  host: 127.0.0.1
+  port: 5432
+  user: solo
+  dbname: solo
+  password: solo
+  min_connections: 1
+  max_connections: 10
+
+logging:
+  version: 1
+  formatters:
+    simple:
+      format: '%(asctime)s %(levelname)-5.5s [%(name)s][%(threadName)s] %(message)s'
+  handlers:
+    console:
+      class: logging.StreamHandler
+      level: DEBUG
+      formatter: simple
+      stream: ext://sys.stdout
+  loggers:
+    asyncio:
+      level: DEBUG
+      handlers: [console]
+      propagate: no
+    aiohttp:
+      level: DEBUG
+      handlers: [console]
+      propagate: no
+    aiopg:
+      level: DEBUG
+      handlers: [console]
+      propagate: no
+    sqlalchemy:
+      level: DEBUG
+      handlers: [console]
+      propagate: yes
+    solo:
+      level: DEBUG
+      handlers: [console]
+      propagate: no
+  root:
+    level: DEBUG
+    handlers: [console]
+    propagate: yes

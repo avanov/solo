@@ -1,30 +1,35 @@
-*.py[co]
+.[oa]
 *~
-.emacs-project
-*.orig
-\#*
+.py[co]
+__pycache__/
+.doit.db
+.idea/
+.cache/
 
-# If we build a package with setup.py sdist bdist_egg
-# we usually want to exclude the resulting builds from
-# our source control.
-# ----------------------------------------------------
 build/
 dist/
 *.egg-info/
 
-# PyCharm/IDEA project-related metadata
-# -------------------------------------
-.idea/
+docs/_build
 
-.vagrant
-celerybeat-schedule
-celerybeat.pid
+*nose*
+*node_modules*
+# Ignore all test-related files (see setup.py -> setup(tests_require=[]))
+*coverage*
+# but keep the .coveragerc (for TravisCI/Coveralls services)
+!.coveragerc
 
-# ignore docs builds
-# ------------------
-docs/_build/*
+# Ignore vagrant box meta files
+.vagrant/
 
-.coverage
-coverage.xml
-# xunit output for jenkins
-nosetests.xml
+# Compass/Sass cache
+.sass-cache/
+
+# compiled pacific configs
+*.pconf
+
+# do not track contents of private directories
+.*_priv/
+
+# ansible temporary files
+deploy/*.retry
