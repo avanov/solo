@@ -8,7 +8,7 @@ site_pip_test_requirements_path: "/vagrant/requirements_test.txt"
 
 site_files_group: www-data
 site_version: 0.0.1
-site_package_name: assignment
+site_package_name: solo
 site_package_versioned_name: "{{ site_package_name }}-{{ site_version }}"
 
 # Python wheels for some reason depend on filename during pip installation,

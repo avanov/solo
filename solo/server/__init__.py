@@ -3,7 +3,6 @@ from typing import Any, Dict, Tuple
 
 from aiohttp import web
 
-from solo.apps import probabilities
 from . import db
 
 
@@ -13,8 +12,8 @@ async def init_app(loop: asyncio.AbstractEventLoop,
                           debug=config['debug'])
     # Setup routes
     # ------------
-    app.router.add_route("GET", "/probabilities/{attrs:.+}",
-                         probabilities.handlers.handler)
+    #app.router.add_route("GET", "/probabilities/{attrs:.+}",
+    #                     probabilities.handlers.handler)
 
     # Setup database connection pool
     # ------------------------------

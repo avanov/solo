@@ -6,7 +6,7 @@ deployment_server_name: localhost
 deployment_web_ssl_port: 34443
 locale: en_US.utf8
 
-project_name: assignment
+project_name: solo
 project_home_path: "/srv/{{ project_name }}"
 project_frontend_files_dir: "{{ project_home_path }}/frontend"
 project_media_dir: "{{ project_home_path }}/media"

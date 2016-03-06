@@ -2,6 +2,9 @@
 """
 import argparse
 import sys
+from typing import Any, List, Dict
+from pathlib import Path
+
 from pkg_resources import get_distribution
 
 import yaml
@@ -41,3 +44,12 @@ INIT_CONFIG = """---
 CLI_COMMANDS = {
     'init': init_cmd,
 }
+
+
+def parse_app_config(argv: List[str]) -> Dict[str, Any]:
+    p = argparse.ArgumentParser()
+    p.add_argument("config", help="path to a YAML config.")
+    args = p.parse_args(argv)
+    with Path(args.config).open() as f:
+        config = yaml.load(f.read())
+    return config
