@@ -1,0 +1,97 @@
+---
+# PgBouncer & Postgres
+# ----------------------
+# Read about the repository at http://wiki.postgresql.org/wiki/Apt
+- name: Add PostgreSQL Global Development Group repository
+  apt_repository: repo='deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main'
+
+- name: Add PostgreSQL Global Development Group apt key
+  apt_key: url=http://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc state=present
+
+- name: ensure apt cache is up to date
+  apt: update_cache=yes
+
+- name: workaround to install postgresql with locale set
+  shell: LANG={{ postgresql_locale }} LC_COLLATE={{ postgresql_locale }} LC_CTYPE={{ postgresql_locale }} LC_MESSAGES={{ postgresql_locale }} LC_MONETARY={{ postgresql_locale }} LC_NUMERIC={{ postgresql_locale }} LC_TIME={{ postgresql_locale }} LC_ALL={{ postgresql_locale }} apt-get install -y {{ item }}
+  with_items:
+    - "postgresql-client-{{ postgresql_version }}"
+    - "postgresql-server-dev-{{ postgresql_version }}"
+    - "postgresql-{{ postgresql_version }}"
+    - "postgresql-contrib-{{ postgresql_version }}"
+    - pgbouncer
+    # For ansible's postgres module
+    - libpq-dev
+    - python-psycopg2
+
+# Sysctl
+- name: Create Postgres' sysctl config
+  template: src="30-postgresql-shm.conf.j2"
+            dest="/etc/sysctl.d/30-postgresql-shm.conf"
+            owner=root
+            group=root
+            mode=0644
+
+- name: Update sysctl config
+  command: service procps start
+
+# Postgres
+- name: Set up Postgres
+  template: src="{{ postgresql_version }}/main/{{ item }}.j2"
+            dest="/etc/postgresql/{{ postgresql_version }}/main/{{ item }}"
+            owner=postgres
+            group=postgres
+            mode=0640
+  with_items:
+    - postgresql.conf
+    - pg_hba.conf
+
+- name: Set up Postgres client
+  template:
+    src: ".pgpass.j2"
+    dest: "{{ instance_owner_home_path }}/.pgpass"
+    owner: "{{ instance_owner }}"
+    group: "{{ instance_owner }}"
+    mode: "0600"
+
+- name: Restart Postgres
+  command: pg_ctlcluster {{ postgresql_version }} main restart -m fast
+
+- name: Add database user
+  postgresql_user: user={{ postgresql_db_user }} password={{ postgresql_db_password }} role_attr_flags=SUPERUSER state=present
+  become: yes
+  become_user: postgres
+
+- name: Create project's database
+  postgresql_db:
+    db: "{{ item }}"
+    owner: "{{ postgresql_db_user }}"
+    state: present
+    encoding: "UTF8"
+    lc_collate: "en_US.utf8"
+    lc_ctype: "en_US.utf8"
+  with_items: postgresql_databases
+
+  become: yes
+  become_user: postgres
+
+# PgBouncer
+- name: Set up PgBouncer
+  template: src="{{ item }}.j2" dest="/etc/default/{{ item }}"
+            owner=root
+            group=root
+            mode=0644
+  with_items:
+    - pgbouncer
+  notify:
+    - restart pgbouncer
+
+- name: Add PgBouncer's configuration files
+  template: src="{{ item }}.j2" dest="/etc/pgbouncer/{{ item }}"
+            owner=postgres
+            group=postgres
+            mode=0640
+  with_items:
+    - pgbouncer.ini
+    - userlist.txt
+  notify:
+    - restart pgbouncer

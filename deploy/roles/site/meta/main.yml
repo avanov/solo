@@ -1,0 +1,11 @@
+---
+dependencies:
+  - role: avanov.pyenv
+    become: yes
+    pyenv_path: "{{ site_pyenv_path }}"
+    pyenv_owner: "{{ instance_owner }}"
+    pyenv_python_versions:
+      - "3.5.1"
+    pyenv_virtualenvs:
+      - venv_name: "{{ project_name }}"
+        py_version: "3.5.1"

@@ -1,0 +1,9 @@
+---
+postgresql_locale: en_US.utf8
+postgresql_version: 9.5
+postgresql_db_user: "{{ project_name }}"
+postgresql_db_password: "{{ project_name }}"
+postgresql_databases:
+  - "{{ project_name }}"
+postgresql_listen_addresses: "localhost"
+postgresql_unix_socket_dir: /var/run/postgresql

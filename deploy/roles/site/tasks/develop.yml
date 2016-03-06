@@ -1,0 +1,24 @@
+---
+- name: Populate project's environment
+  become: no
+  pip:
+    executable: "{{ site_virtualenv_path }}/bin/pip"
+    requirements: "{{ item }}"
+    state: latest
+  with_items:
+    - "{{ site_pip_requirements_path }}"
+    - "{{ site_pip_local_requirements_path }}"
+    - "{{ site_pip_test_requirements_path }}"
+
+- name: Install the project in editable mode
+  become: no
+  pip:
+    executable: "{{ site_virtualenv_path }}/bin/pip"
+    editable: yes
+    name: /vagrant
+
+- name: Apply exiting database migrations
+  become: no
+  command: "{{ site_pyenv_path }}/versions/{{ project_name }}/bin/alembic upgrade head"
+  args:
+    chdir: /vagrant

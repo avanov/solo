@@ -1,0 +1,28 @@
+---
+ansible_ssh_host: 192.168.30.101
+
+deployment_type: develop
+deployment_server_name: localhost
+deployment_web_ssl_port: 34443
+locale: en_US.utf8
+
+project_name: assignment
+project_home_path: "/srv/{{ project_name }}"
+project_frontend_files_dir: "{{ project_home_path }}/frontend"
+project_media_dir: "{{ project_home_path }}/media"
+project_temporary_files_dir: "{{ project_home_path }}/tmp/"
+
+instance_owner: "{{ ansible_ssh_user }}"
+instance_owner_home_path: "/home/{{ instance_owner }}"
+
+ssl_local_crt_file: ./ssl/insecure_ssl.crt
+ssl_remote_crt_file: "/etc/ssl/certs/{{ project_name }}.crt"
+ssl_local_key_file: ./ssl/insecure_ssl.key
+ssl_remote_key_file: "/etc/ssl/private/{{ project_name }}.key"
+
+
+# Hardware parameters
+# -------------------
+hw_cpus_num: 1
+hw_cores_num: 1
+hw_physical_ram_gb: 2

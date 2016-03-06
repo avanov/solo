@@ -1,0 +1,3 @@
+---
+- include: develop.yml
+  when: deployment_type == 'develop'

@@ -1,0 +1,13 @@
+# Shared memory settings for PostgreSQL
+
+# Note that if another program uses shared memory as well, you will have to
+# coordinate the size settings between the two.
+
+# Maximum size of shared memory segment in bytes is set to 2Gb
+# This param should be no lower than specified in
+# postgresql.conf -> shared_buffers
+# 600 MB
+kernel.shmmax = 629145600
+
+# Maximum total size of shared memory in pages (normally 4096 bytes)
+#kernel.shmall = 2097152

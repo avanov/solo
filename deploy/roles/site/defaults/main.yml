@@ -1,0 +1,22 @@
+---
+site_pyenv_path: "{{ instance_owner_home_path }}/pyenv"
+site_virtualenv_path: "{{ site_pyenv_path }}/versions/{{ project_name }}"
+site_pip_path: "{{ site_virtualenv_path }}/bin/pip"
+site_pip_requirements_path: "/vagrant/requirements.txt"
+site_pip_local_requirements_path: "/vagrant/requirements_local.txt"
+site_pip_test_requirements_path: "/vagrant/requirements_test.txt"
+
+site_files_group: www-data
+site_version: 0.0.1
+site_package_name: assignment
+site_package_versioned_name: "{{ site_package_name }}-{{ site_version }}"
+
+# Python wheels for some reason depend on filename during pip installation,
+# and if the name does not follow the convention, pip fails with the
+# InvalidWheelFilename("%s is not a valid wheel filename") exeption. Weirdos...
+site_dist_wheel_name: "{{ site_package_name }}-{{ site_version }}-py3-none-any.whl"
+site_dist_local_dir: "{{ lookup('env','PWD') }}/dist"
+site_dist_local_path: "{{ site_dist_local_dir }}/{{ site_dist_wheel_name }}"
+site_dist_upload_dir: /tmp
+site_dist_upload_path: "{{ site_dist_upload_dir }}/{{ site_dist_wheel_name }}"
+

@@ -1,0 +1,15 @@
+---
+# Develop playbook for a local vagrant instance
+- hosts: develop
+  become: yes
+  become_method: sudo
+  roles:
+    - role: postgresql
+      postgresql_listen_addresses: "*"
+      postgresql_databases:
+        - "{{ project_name }}"
+    - role: site
+
+  # pre_tasks are executed before roles
+  pre_tasks:
+    - include: includes/remote_host_prerequisites.yml
