@@ -1,3 +1,7 @@
+.. image:: https://gemnasium.com/avanov/solo.svg
+        :target: https://gemnasium.com/avanov/solo
+
+
 Host prerequisites
 ------------------
 
@@ -31,10 +35,6 @@ After a new VM is provisioned, run
 
 
 You can terminate the server by sending it a SIGINT (Ctrl-C from an interactive session).
-
-Once the server is up and running, point your browser (host machine) to
-``HTTP GET http://localhost:38000/probabilities/american/inventor/male``
-to get a sample output based on a provided dataset.
 
 
 Test framework
