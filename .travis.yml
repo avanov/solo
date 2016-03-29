@@ -1,5 +1,7 @@
 ---
+sudo: false
 language: python
+cache: pip
 install:
   - pip install --user -r ./requirements.txt
   - pip install --user -r ./requirements_test.txt
