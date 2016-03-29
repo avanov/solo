@@ -1,4 +1,4 @@
 Sphinx==1.4a1
 invoke==0.12.2
 wheel==0.29.0
-alembic==0.8.4
+alembic==0.8.5
