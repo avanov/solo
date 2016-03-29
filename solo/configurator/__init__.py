@@ -14,10 +14,9 @@ from .path import caller_package
 from .exceptions import ConfigurationError
 from .view import http_endpoint
 from .view import http_defaults
-from .url import route_path, create_django_route
 
 
-__all__ = ['route_path', 'http_endpoint', 'http_defaults', 'Configurator']
+__all__ = ['http_endpoint', 'http_defaults', 'Configurator']
 
 
 class Configurator(RoutesConfiguratorMixin,
@@ -67,19 +66,6 @@ class Configurator(RoutesConfiguratorMixin,
 
         c(self)
         self.set_route_prefix(old_route_prefix)
-
-    def django_urls(self):
-        """Converts registered routes to a list of Django URLs"""
-        return [
-            create_django_route(
-                name=route_dict['name'],
-                pattern=route_dict['pattern'],
-                rules=route_dict.get('rules'),
-                extra_kwargs=route_dict.get('extra_kwargs'),
-                viewlist=route_dict['viewlist']
-            )
-            for route_dict in self.routes.values()
-        ]
 
     def scan(self, package=None, categories=None, onerror=None, ignore=None):
         if package is None:

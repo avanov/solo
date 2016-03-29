@@ -1,8 +1,5 @@
 import re
 
-from .view import RegexURLPattern
-from django.core.urlresolvers import reverse
-
 
 # A replacement marker in a pattern must begin with an uppercase or
 # lowercase ASCII letter or an underscore, and can be composed only
@@ -58,66 +55,3 @@ extract_pattern = lambda line: _extract_braces_expression(
     ROUTE_PATTERN_OPEN_BRACES_RE,
     ROUTE_PATTERN_CLOSING_BRACES_RE
 )
-
-
-def create_django_route(name, pattern, rules=None, extra_kwargs=None, viewlist=None):
-    """
-
-    :param name: Route Name
-    :type name: str
-    :param pattern: URL pattern
-    :type pattern: str
-    :param rules:
-    :type rules: dict
-    :param extra_kwargs:
-    :param viewlist:
-    :return:
-    """
-    if rules is None:
-        rules = {}
-    # Django requires us to strip a prefixed slash
-    pattern = pattern.lstrip('/')
-    buf = []
-    while pattern:
-        result = extract_pattern(pattern)
-        if result:
-            result, pattern = result
-            # Remove braces from the result "{pattern[:rule]}"
-            result = result[1:-1]
-            if ':' in result:
-                # pattern in a "pattern_name:rule" form
-                match_group_name, rule = result.split(':', 1)
-            else:
-                # pattern in a "pattern_name" form
-                match_group_name = result
-                rule = rules.get(match_group_name)
-                if not rule:
-                    # This default pattern is Pyramid's default.
-                    rule = '[^/]+'
-
-            result = u"(?P<{match_group_name}>{rule})".format(
-                match_group_name=match_group_name,
-                rule=rule
-            )
-            buf.append(result)
-            continue
-
-        buf.append(pattern[0])
-        pattern = pattern[1:]
-
-    # Parsing is done. Now join everything together
-    buf = u''.join(buf)
-
-    regex_pattern = u'^{expr}$'.format(expr=buf)
-    return RegexURLPattern(regex_pattern, extra_kwargs, name, viewlist=viewlist)
-
-
-def route_path(route_name, *elements, **kw):
-    """
-
-    :param route_name:
-    :param elements:
-    :param kw:
-    :return:
-    """
-    return reverse(route_name, args=elements, kwargs=kw)

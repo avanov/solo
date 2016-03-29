@@ -1,5 +1,4 @@
-from django.core.urlresolvers import RegexURLPattern as DjangoRegexURLPattern
-from django.http import HttpResponse
+from aiohttp.web import Response
 from django.http import Http404
 
 import venusian
@@ -80,14 +79,8 @@ class ViewCallback(object):
         return True, request
 
     def process_callback_response(self, request, response, view_settings):
-        if isinstance(response, HttpResponse):
+        if isinstance(response, Response):
             # Do not process standard django responses
             return response
         renderer = view_settings['renderer']
         return renderer(request, response)
-
-
-class RegexURLPattern(DjangoRegexURLPattern):
-    def __init__(self, regex, default_args=None, name=None, viewlist=None):
-        super(RegexURLPattern, self).__init__(regex, ViewCallback(viewlist), default_args, name)
-        self.viewlist = viewlist

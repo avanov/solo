@@ -1,21 +1,9 @@
-from django.http import HttpResponse
-from django.db.models.query import ValuesListQuerySet
-from django.core.serializers.json import DjangoJSONEncoder
-from django.shortcuts import render
+import json
+
+from aiohttp.web import Response
 
 
-class AdvancedJSONEncoder(DjangoJSONEncoder):
-    """ JSONEncoder subclass that knows how to encode ValuesListQuerySet to lists.
-    """
-    def default(self, o):
-        # See "Date Time String Format" in the ECMA-262 specification.
-        if isinstance(o, ValuesListQuerySet):
-            return list(o)
-        else:
-            return super(AdvancedJSONEncoder, self).default(o)
-
-
-json_encode = AdvancedJSONEncoder().encode
+json_encode = json.dumps
 
 
 class JsonRendererFactory(object):
@@ -24,12 +12,12 @@ class JsonRendererFactory(object):
 
     def __call__(self, request, view_response):
         response = request.response
-        response.content_type = 'application/json; charset=utf-8'
+        response.content_type = 'application/json'
         response.content = json_encode(view_response)
-        return HttpResponse(response.content,
-                            content_type=response.content_type,
-                            status=response.status_code
-                            )
+        return Response(text=response.content,
+                        content_type=response.content_type,
+                        charset='utf-8',
+                        status=response.status_code)
 
 
 class StringRendererFactory(object):
@@ -43,23 +31,9 @@ class StringRendererFactory(object):
         return response
 
 
-class DjangoTemplateRendererFactory(object):
-    def __init__(self, name):
-        self.name = name
-
-    def __call__(self, request, context_dict):
-        response = request.response
-        httpresponse_kwargs = {
-            'content_type': response['Content-Type'],
-            'status': response.status_code
-        }
-        return render(request, self.name, context_dict, **httpresponse_kwargs)
-
-
 BUILTIN_RENDERERS = {
     'json': JsonRendererFactory,
     'string': StringRendererFactory,
-    '.html': DjangoTemplateRendererFactory,
 }
 
 

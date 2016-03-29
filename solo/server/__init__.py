@@ -28,6 +28,15 @@ async def init_webapp(loop: asyncio.AbstractEventLoop,
     def generate_webapp(webapp: web.Application, configurator: Configurator) -> web.Application:
         #app.router.add_route("GET", "/probabilities/{attrs:.+}",
         #                     probabilities.handlers.handler)
+        for route in configurator.routes.values():
+            create_django_route(
+                name=route.name,
+                pattern=route.pattern,
+                rules=route.rules,
+                extra_kwargs=route.extra_kwargs,
+                viewlist=route.viewlist
+            )
+            webapp.router.add_route('*', '/path/to', MyView)
         return webapp
     webapp = generate_webapp(webapp, configurator)
 

@@ -3,6 +3,7 @@ import inspect
 from . import predicates as default_predicates
 from ..exceptions import ConfigurationError
 from ..util import viewdefaults
+from .routes import Route, RouteItem
 
 
 class ViewsConfiguratorMixin(object):
@@ -14,7 +15,6 @@ class ViewsConfiguratorMixin(object):
                  request_method=None,
                  attr=None,
                  decorator=None,
-                 check_csrf=False,
                  renderer=None,
                  **predicates):
         """
@@ -38,7 +38,6 @@ class ViewsConfiguratorMixin(object):
           view configuration for the view.
         :type attr: str
         :param decorator:
-        :param check_csrf:
         :param renderer:
         :param predicates: Pass a key/value pair here to use a third-party predicate
                            registered via
@@ -49,7 +48,7 @@ class ViewsConfiguratorMixin(object):
         :return: :raise ConfigurationError:
         """
         try:
-            route = self.routes[route_name]
+            route = self.routes[route_name]  # type: Route
         except KeyError:
             raise ConfigurationError(
                 'No route named {route_name} found for view registration'.format(route_name=route_name)
@@ -77,10 +76,6 @@ class ViewsConfiguratorMixin(object):
         if decorator:
             view = decorator(view)
 
-        # csrf_exempt is used by Django CSRF Middleware
-        # -----------------------------------------------
-        view.csrf_exempt = not check_csrf
-
         # Register predicates
         # -------------------------------------
         if request_method is None:
@@ -101,13 +96,11 @@ class ViewsConfiguratorMixin(object):
 
         # Save
         # -------------------------------------
-        route_item = {
-            'view': view,
-            'attr': attr,
-            'renderer': self.get_renderer(renderer),
-            'predicates': preds,
-        }
-        route['viewlist'].append(route_item)
+        route_item = RouteItem(view=view,
+                               attr=attr,
+                               renderer=self.get_renderer(renderer),
+                               predicates=preds)
+        route.viewlist.append(route_item)
 
     def add_view_predicate(self, name, factory, weighs_more_than=None,
                            weighs_less_than=None):
@@ -143,7 +136,7 @@ class ViewsConfiguratorMixin(object):
             self.add_view_predicate(name, factory)
 
 
-class ClassViewWrapper(object):
+class ClassViewWrapper:
     def __init__(self, view_class, method_to_call):
         self.view_class = view_class
         self.method_to_call = method_to_call
