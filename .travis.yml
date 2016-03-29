@@ -11,6 +11,6 @@ python:
 
 # --source specifies what packages to cover, you probably want to use that option
 script:
-    coverage run --source=solo py.test
+    - py.test
 
 after_success: coveralls
