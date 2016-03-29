@@ -1,5 +1,4 @@
-from aiohttp.web import Response
-from django.http import Http404
+from aiohttp.web import Response, HTTPNotFound
 
 import venusian
 
@@ -65,7 +64,7 @@ class ViewCallback(object):
             if passed:
                 setattr(request, 'solo_view_settings', view_settings)
                 return view_settings
-        raise Http404
+        raise HTTPNotFound()
 
     def check_predicates(self, view_settings, request, req_args, req_kw):
         predicates = view_settings['predicates']

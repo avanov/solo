@@ -12,9 +12,9 @@ async def init_webapp(loop: asyncio.AbstractEventLoop,
     configurator = Configurator()
     #configurator.include('pacific.db')
 
-    apps = get_apps_mapping(config)
-    for app_name, url_prefix in apps.items():
-        configurator.include(app_name, url_prefix)
+    apps = config['apps']
+    for app_name, app_options in apps.items():
+        configurator.include(app_name, app_options['url_prefix'])
 
     configurator.scan()
     # We must also scan applications' packages
@@ -51,17 +51,3 @@ def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
 
-
-def get_apps_mapping(config):
-    """
-    :param config:
-    :type config: :class:`pyramid.config.Configurator`
-    :return: mapping of app_name => app_url_prefix
-    :rtype: dict
-    """
-    apps_list = config.registry.settings['apps'].split(' ')
-    apps = {}
-    for app_mapping in apps_list:
-        app_name, url_prefix = app_mapping.split('=>', 1)
-        apps[app_name] = url_prefix
-    return apps
