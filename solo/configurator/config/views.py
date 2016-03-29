@@ -56,9 +56,8 @@ class ViewsConfiguratorMixin(object):
 
         # Parse view
         # -----------------------------------------------
-        if inspect.isclass(view):
-            actual_method = attr if attr else '__call__'
-            view = ClassViewWrapper(view, actual_method)
+        if inspect.isclass(view) and attr is None:
+            attr = '__call__'
 
         # Add decorators
         # -----------------------------------------------

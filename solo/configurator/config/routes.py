@@ -29,7 +29,7 @@ class RoutesConfiguratorMixin(object):
 class RouteItem:
     __slots__ = ['view', 'attr', 'renderer', 'predicates']
 
-    def __init__(self, view, attr, renderer, predicates):
+    def __init__(self, view, attr: Optional[str], renderer, predicates):
         self.view = view
         self.attr = attr
         self.renderer = renderer

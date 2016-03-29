@@ -1,14 +1,22 @@
 import asyncio
-from typing import Any, Dict, Tuple
+from typing import Any, Dict
+import logging
 
 from aiohttp import web
 
 from . import db
 from ..configurator import Configurator
+from ..configurator.view import PredicatedHandler
+
+
+log = logging.getLogger(__name__)
 
 
 async def init_webapp(loop: asyncio.AbstractEventLoop,
                       config: Dict[str, Any]) -> web.Application:
+    webapp = web.Application(loop=loop,
+                             debug=config['debug'])
+
     configurator = Configurator()
     #configurator.include('pacific.db')
 
@@ -16,29 +24,11 @@ async def init_webapp(loop: asyncio.AbstractEventLoop,
     for app_name, app_options in apps.items():
         configurator.include(app_name, app_options['url_prefix'])
 
-    configurator.scan()
+    #configurator.scan()
     # We must also scan applications' packages
     for app_name in apps:
         configurator.scan(app_name)
-
-    webapp = web.Application(loop=loop,
-                          debug=config['debug'])
-    # Setup routes
-    # ------------
-    def generate_webapp(webapp: web.Application, configurator: Configurator) -> web.Application:
-        #app.router.add_route("GET", "/probabilities/{attrs:.+}",
-        #                     probabilities.handlers.handler)
-        for route in configurator.routes.values():
-            create_django_route(
-                name=route.name,
-                pattern=route.pattern,
-                rules=route.rules,
-                extra_kwargs=route.extra_kwargs,
-                viewlist=route.viewlist
-            )
-            webapp.router.add_route('*', '/path/to', MyView)
-        return webapp
-    webapp = generate_webapp(webapp, configurator)
+        webapp = register_routes(webapp, configurator)
 
     # Setup database connection pool
     # ------------------------------
@@ -47,7 +37,16 @@ async def init_webapp(loop: asyncio.AbstractEventLoop,
     return webapp
 
 
-def main(global_config, **settings):
-    """ This function returns a Pyramid WSGI application.
-    """
-
+def register_routes(webapp: web.Application, configurator: Configurator) -> web.Application:
+    # app.router.add_route("GET", "/probabilities/{attrs:.+}",
+    #                     probabilities.handlers.handler)
+    # Setup routes
+    # ------------
+    for route in configurator.routes.values():
+        log.debug('Registering route {}'.format(route.name))
+        handler = PredicatedHandler(route.viewlist)
+        webapp.router.add_route(method='*',
+                                path=route.pattern,
+                                name=route.name,
+                                handler=handler)
+    return webapp

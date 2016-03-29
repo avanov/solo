@@ -1,6 +1,7 @@
 from collections import OrderedDict
 from typing import Optional
 import inspect
+import logging
 
 import pkg_resources
 import venusian
@@ -17,6 +18,9 @@ from .view import http_defaults
 
 
 __all__ = ['http_endpoint', 'http_defaults', 'Configurator']
+
+
+log = logging.getLogger(__name__)
 
 
 class Configurator(RoutesConfiguratorMixin,
@@ -70,9 +74,8 @@ class Configurator(RoutesConfiguratorMixin,
     def scan(self, package=None, categories=None, onerror=None, ignore=None):
         if package is None:
             package = caller_package()
-
         package = self.maybe_dotted(package)
-
+        log.debug('Scanning {}'.format(package))
         scanner = self.venusian.Scanner(config=self)
         scanner.scan(package, categories=categories, onerror=onerror, ignore=ignore)
         self.check_routes_consistency()

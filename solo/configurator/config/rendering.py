@@ -11,13 +11,10 @@ class JsonRendererFactory(object):
         self.name = name
 
     def __call__(self, request, view_response):
-        response = request.response
-        response.content_type = 'application/json'
-        response.content = json_encode(view_response)
-        return Response(text=response.content,
-                        content_type=response.content_type,
+        return Response(text=json_encode(view_response),
+                        content_type='application/json',
                         charset='utf-8',
-                        status=response.status_code)
+                        status=200)
 
 
 class StringRendererFactory(object):
@@ -25,10 +22,10 @@ class StringRendererFactory(object):
         self.name = name
 
     def __call__(self, request, view_response):
-        response = request.response
-        response.content_type = 'text/plain; charset=utf-8'
-        response.content = view_response
-        return response
+        return Response(text=view_response,
+                        content_type='text/plain',
+                        charset='utf-8',
+                        status=200)
 
 
 BUILTIN_RENDERERS = {

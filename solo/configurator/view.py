@@ -1,6 +1,12 @@
-from aiohttp.web import Response, HTTPNotFound
+import logging
+from typing import List
+from .config.routes import RouteItem
+from aiohttp.web import Request, Response, HTTPNotFound
 
 import venusian
+
+
+log = logging.getLogger(__name__)
 
 
 class http_endpoint(object):
@@ -36,50 +42,43 @@ class http_defaults(http_endpoint):
 
     See :ref:`view_defaults` for more information.
     """
-
     def __call__(self, wrapped):
         wrapped.__view_defaults__ = self.__dict__.copy()
         return wrapped
 
 
-class ViewCallback(object):
-    """ Wrapper object around actual view callables that checks predicates during the request
-    and processes results returned from view callables during the response.
-    """
-    def __init__(self, viewlist):
+class PredicatedHandler:
+    __slots__ = ['viewlist']
+
+    def __init__(self, viewlist: List[RouteItem]):
         self.viewlist = viewlist
 
-    def __call__(self, request, *args, **kwargs):
-        view_settings = self.find_view_settings(request, args, kwargs)
-        response = view_settings['view'](request, *args, **kwargs)
-        return self.process_callback_response(request, response, view_settings)
-
-    def find_view_settings(self, request, args, kwargs):
-        if hasattr(request, 'solo_view_settings'):
-            return getattr(request, 'solo_view_settings')
-
-        # cache
-        for view_settings in self.viewlist:
-            passed, request = self.check_predicates(view_settings, request, args, kwargs)
-            if passed:
-                setattr(request, 'solo_view_settings', view_settings)
-                return view_settings
-        raise HTTPNotFound()
-
-    def check_predicates(self, view_settings, request, req_args, req_kw):
-        predicates = view_settings['predicates']
-
+    async def __call__(self, request: Request):
+        """ Resolve predicates here.
+        """
         # here predicate is an instance object
-        for predicate in predicates:
-            is_passed = predicate(None, request)
-            if not is_passed:
-                return is_passed, request
+        for route_item in self.viewlist:
+            for predicate in route_item.predicates:
+                if not predicate(None, request):
+                    log.debug('Predicate {} failed for {} {}'.format(predicate, request.method, request.path_qs))
+                    break
+            else:
+                # All predicates match
+                log.debug('{} {} will be handled by {}'.format(request.method, request.path_qs, route_item.view))
+                handler = route_item.view
+                if route_item.attr:
+                    # handler is a coroutine method of a class
+                    handler = getattr(handler(request), route_item.attr)
+                    response = await handler()
+                else:
+                    # handler is a simple coroutine
+                    response = await handler(request)
 
-        return True, request
+                if isinstance(response, Response):
+                    # Do not process standard responses
+                    return response
+                renderer = route_item.renderer
+                return renderer(request, response)
 
-    def process_callback_response(self, request, response, view_settings):
-        if isinstance(response, Response):
-            # Do not process standard django responses
-            return response
-        renderer = view_settings['renderer']
-        return renderer(request, response)
+        log.debug('All predicates have failed for {} {}'.format(request.method, request.path_qs))
+        raise HTTPNotFound()
