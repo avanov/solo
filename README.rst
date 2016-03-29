@@ -36,7 +36,7 @@ After a new VM is provisioned, run
    $ vagrant ssh
    vagrant@vagrant-ubuntu-*:~$ cd /vagrant
    vagrant@vagrant-ubuntu-*:/vagrant$ pyenv activate solo
-   (solo) vagrant@vagrant-ubuntu-*:/vagrant$ runme ./config.yml
+   (solo) vagrant@vagrant-ubuntu-*:/vagrant$ solo run ./config.yml
 
 
 You can terminate the server by sending it a SIGINT (Ctrl-C from an interactive session).
