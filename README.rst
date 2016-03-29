@@ -1,6 +1,8 @@
 .. image:: https://gemnasium.com/avanov/solo.svg
         :target: https://gemnasium.com/avanov/solo
 
+.. image:: https://coveralls.io/repos/github/avanov/solo/badge.svg?branch=develop
+        :target: https://coveralls.io/github/avanov/solo?branch=develop
 
 Host prerequisites
 ------------------
