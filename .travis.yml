@@ -1,6 +1,8 @@
 ---
 language: python
 install:
+  - pip install --user -r ./requirements.txt
+  - pip install --user -r ./requirements_test.txt
   - pip install coveralls
 python:
   - "3.5"
