@@ -126,21 +126,9 @@ class ViewsConfiguratorMixin(object):
             weighs_less_than=weighs_less_than
             )
 
-
     def add_default_view_predicates(self):
         p = default_predicates
         for name, factory in (
             ('request_method', p.RequestMethodPredicate),
             ):
             self.add_view_predicate(name, factory)
-
-
-class ClassViewWrapper:
-    def __init__(self, view_class, method_to_call):
-        self.view_class = view_class
-        self.method_to_call = method_to_call
-
-    def __call__(self, request, *args, **kw):
-        instance = self.view_class(request, *args, **kw)
-        view = getattr(instance, self.method_to_call)
-        return view()

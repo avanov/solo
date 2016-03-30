@@ -1,0 +1,17 @@
+#%RAML 0.8
+# specs at https://github.com/raml-org/raml-spec/blob/master/raml-0.8.md
+title: Solo Hello API
+version: 1.0
+mediaType: application/json
+baseUri: https://{host}/{appPrefix}/
+baseUriParameters:
+  host:
+    description: Project host
+  appPrefix:
+    description: Application URL prefix
+protocols:
+  - HTTPS
+
+/:
+  get:
+    description: Sample endpoint
