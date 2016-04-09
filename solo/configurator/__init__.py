@@ -55,6 +55,7 @@ class Configurator(RoutesConfiguratorMixin,
         if module is c:
             try:
                 c = getattr(module, 'includeme')
+                log.debug('Including {}'.format(callable))
             except AttributeError:
                 raise ConfigurationError(
                     "module {} has no attribute 'includeme'".format(module.__name__)
@@ -78,7 +79,8 @@ class Configurator(RoutesConfiguratorMixin,
         log.debug('Scanning {}'.format(package))
         scanner = self.venusian.Scanner(config=self)
         scanner.scan(package, categories=categories, onerror=onerror, ignore=ignore)
-        self.check_routes_consistency()
+        self.check_routes_consistency(package)
+        log.debug('End scanning {}'.format(package))
 
     def get_predlist(self, name):
         """ This is a stub method that simply has the same signature as pyramid's version,

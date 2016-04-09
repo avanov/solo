@@ -1,10 +1,15 @@
 from typing import List, Optional
+import logging
 
 from ..exceptions import ConfigurationError
 
 
+log = logging.getLogger(__name__)
+
+
 class RoutesConfiguratorMixin(object):
     def add_route(self, name: str, pattern, rules=None, extra_kwargs=None):
+        log.debug('Adding route {}'.format(name))
         pattern = u'{}/{}'.format(self.route_prefix.rstrip('/'), pattern.lstrip('/'))
         self.routes[name] = Route(name=name,
                                   pattern=pattern,
@@ -12,7 +17,8 @@ class RoutesConfiguratorMixin(object):
                                   extra_kwargs=extra_kwargs,
                                   viewlist=[])
 
-    def check_routes_consistency(self):
+    def check_routes_consistency(self, package):
+        log.debug('Checking routes consistency for {}...'.format(package))
         for route_name, route in self.routes.items():
             viewlist = route.viewlist
             if not viewlist:

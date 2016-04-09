@@ -18,17 +18,13 @@ async def init_webapp(loop: asyncio.AbstractEventLoop,
                              debug=config['debug'])
 
     configurator = Configurator()
-    #configurator.include('pacific.db')
 
     apps = config['apps']
     for app_name, app_options in apps.items():
         configurator.include(app_name, app_options['url_prefix'])
+        configurator.scan(package=app_name, ignore=['.__pycache__'])
 
-    #configurator.scan()
-    # We must also scan applications' packages
-    for app_name in apps:
-        configurator.scan(app_name)
-        webapp = register_routes(webapp, configurator)
+    webapp = register_routes(webapp, configurator)
 
     # Setup database connection pool
     # ------------------------------

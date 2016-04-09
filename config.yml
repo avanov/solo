@@ -14,6 +14,9 @@ postgresql:
   max_connections: 10
 
 apps:
+  solo.apps.accounts:
+    url_prefix: /users
+
   solo.apps.hello:
     url_prefix: /solo
 

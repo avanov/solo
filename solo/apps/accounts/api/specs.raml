@@ -1,9 +1,9 @@
 #%RAML 0.8
 # specs at https://github.com/raml-org/raml-spec/blob/master/raml-0.8.md
-title: Solo Hello API
+title: Solo Accounts API
 version: 1.0
 mediaType: application/json
-baseUri: https://{host}/{appPrefix}/
+baseUri: https://{host}/{appPrefix}
 baseUriParameters:
   host:
     description: Project host
@@ -14,4 +14,4 @@ protocols:
 
 /:
   get:
-    description: Sample endpoint
+    description: List registered accounts

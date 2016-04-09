@@ -1,8 +1,11 @@
 import json
-from typing import Optional, Dict, Any, Iterable
+from typing import Iterable, Dict, Any
+
+import sqlalchemy as sa
+from sqlalchemy.ext.declarative import declarative_base
 
 
-class BaseEntity:
+class _BaseModel:
     FIELDS = tuple()
     IN_MODIFIERS = {}
     OUT_MODIFIERS = {
@@ -11,9 +14,9 @@ class BaseEntity:
     }
     DEFAULT_MODIFIERS = {}
 
-    def __init__(self, **kwargs):
-        for k, v in kwargs.items():
-            setattr(self, k, v)
+    #def __init__(self, **kwargs):
+    #    for k, v in kwargs.items():
+    #        setattr(self, k, v)
 
     def to_dict(self, *fields: Iterable[str]) -> Dict[str, Any]:
         if not fields:
@@ -29,3 +32,7 @@ class BaseEntity:
                 v = out_modifiers[m.strip()](v)
             rv[field] = v
         return rv
+
+
+metadata = sa.MetaData()
+Base = declarative_base(metadata=metadata, cls=_BaseModel)

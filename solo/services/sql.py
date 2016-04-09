@@ -4,15 +4,14 @@ from typing import List, Optional
 from aiohttp import web
 from sqlalchemy import Table, Column, select
 
-from ..server.entities import BaseEntity
-
+from ..server.model import Base
 
 log = logging.getLogger(__name__)
 
 
 class SQLService:
 
-    def __init__(self, app: web.Application, table: Table, entity: BaseEntity):
+    def __init__(self, app: web.Application, table: Table, entity: Base):
         self.app = app
         self.engine = app.dbengine  # type: aiopg.sa.Engine
         self.t = table
@@ -22,7 +21,7 @@ class SQLService:
                        search_field: Column,
                        search_value: List[str],
                        limit: Optional[int] = None,
-                       offset: int = 0) -> List[BaseEntity]:
+                       offset: int = 0) -> List[Base]:
         """ Return a collection of matched records up to the specified limit.
         """
         query = (select(self.columns())

@@ -9,7 +9,7 @@ import venusian
 log = logging.getLogger(__name__)
 
 
-class http_endpoint(object):
+class http_endpoint:
     venusian = venusian
 
     def __init__(self, **settings):
