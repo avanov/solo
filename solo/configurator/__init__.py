@@ -1,21 +1,20 @@
-from collections import OrderedDict
-from typing import Optional
 import inspect
 import logging
+import pkgutil
+from typing import Optional
 
-import pkg_resources
+import ramlfications as raml
 import venusian
 
-from .config.rendering import RenderingConfiguratorMixin
+from .util import maybe_dotted
 from .config.rendering import BUILTIN_RENDERERS
-from .config.routes import RoutesConfiguratorMixin
-from .config.views import ViewsConfiguratorMixin
-from .config.util import PredicateList
-from .path import caller_package
+from .config.rendering import RenderingConfigurator
+from .config.routes import RoutesConfigurator
+from .config.views import ViewsConfigurator
 from .exceptions import ConfigurationError
-from .view import http_endpoint
+from .path import caller_package
 from .view import http_defaults
-
+from .view import http_endpoint
 
 __all__ = ['http_endpoint', 'http_defaults', 'Configurator']
 
@@ -23,22 +22,22 @@ __all__ = ['http_endpoint', 'http_defaults', 'Configurator']
 log = logging.getLogger(__name__)
 
 
-class Configurator(RoutesConfiguratorMixin,
-                   ViewsConfiguratorMixin,
-                   RenderingConfiguratorMixin):
+class Configurator:
     venusian = venusian
     inspect = inspect
 
-    def __init__(self, route_prefix=None):
+    def __init__(self,
+                 route_prefix=None,
+                 router_configurator=RoutesConfigurator,
+                 views_configurator=ViewsConfigurator,
+                 rendering_configurator=RenderingConfigurator):
         if route_prefix is None:
             route_prefix = ''
-        self.route_prefix = route_prefix
-
-        self.routes = OrderedDict()
-        self.renderers = {}
+        self.router = router_configurator(route_prefix)
+        self.views = views_configurator()
+        self.rendering = rendering_configurator()
         # Predicates machinery
         # --------------------
-        self.predicates = PredicateList()
 
         self.setup_registry()
 
@@ -46,11 +45,11 @@ class Configurator(RoutesConfiguratorMixin,
         if route_prefix is None:
             route_prefix = ''
 
-        old_route_prefix = self.route_prefix
+        old_route_prefix = self.router.route_prefix
         route_prefix = u'{}/{}'.format(old_route_prefix.rstrip('/'), route_prefix.lstrip('/'))
         self.set_route_prefix(route_prefix)
 
-        c = self.maybe_dotted(callable)
+        c = maybe_dotted(callable)
         module = self.inspect.getmodule(c)
         if module is c:
             try:
@@ -72,62 +71,35 @@ class Configurator(RoutesConfiguratorMixin,
         c(self)
         self.set_route_prefix(old_route_prefix)
 
+    def include_api_specs(self, package: str, path: str):
+        log.debug('Including API specs: {}:{}'.format(package, path))
+        data = pkgutil.get_data(package, path)  # type: bytes
+        data = data.decode('utf-8')
+        data = raml.loads(data)
+        raml_config = raml.setup_config(None)
+        raml_config["validate"] = True
+        specs = raml.parse_raml(data, raml_config)
+        for res in specs.resources:
+            route = '{}/{}'.format(self.router.route_prefix.rstrip('/'), res.name.lstrip('/')).rstrip('/')
+            log.debug('\tRegistering API resource: {}'.format(route))
+
     def scan(self, package=None, categories=None, onerror=None, ignore=None):
         if package is None:
             package = caller_package()
-        package = self.maybe_dotted(package)
+        package = maybe_dotted(package)
         log.debug('Scanning {}'.format(package))
         scanner = self.venusian.Scanner(config=self)
         scanner.scan(package, categories=categories, onerror=onerror, ignore=ignore)
-        self.check_routes_consistency(package)
+        self.router.check_routes_consistency(package)
         log.debug('End scanning {}'.format(package))
-
-    def get_predlist(self, name):
-        """ This is a stub method that simply has the same signature as pyramid's version,
-        but does nothing but returning ``self.predicates``
-        """
-        return self.predicates
 
     def setup_registry(self):
         # Add default renderers
         # ---------------------
         for name, renderer in BUILTIN_RENDERERS.items():
-            self.add_renderer(name, renderer)
+            self.rendering.add_renderer(name, renderer)
 
-        self.add_default_view_predicates()
-
-    def maybe_dotted(self, dotted):
-        if not isinstance(dotted, str):
-            return dotted
-        return self._pkg_resources_style(dotted)
-
-    def _pkg_resources_style(self, value):
-        """ This method is taken from Pyramid Web Framework.
-
-        package.module:attr style
-        """
-        # Calling EntryPoint.load with an argument is deprecated.
-        # See https://pythonhosted.org/setuptools/history.html#id8
-        ep = pkg_resources.EntryPoint.parse('x={}'.format(value))
-        if hasattr(ep, 'resolve'):
-            # setuptools>=10.2
-            return ep.resolve()  # pragma: NO COVER
-        else:
-            return ep.load(False)  # pragma: NO COVER
-
-    def _add_predicate(self, type, name, factory, weighs_more_than=None, weighs_less_than=None):
-        """ This method is a highly simplified equivalent to what you can find in Pyramid.
-
-        :param type: may be only 'view' at the moment
-        :type type: str
-        :param name: valid python identifier string.
-        :type name: str
-        :param weighs_more_than: not used at the moment
-        :param weighs_less_than: not used at the moment
-        """
-        predlist = self.get_predlist(type)
-        predlist.add(name, factory, weighs_more_than=weighs_more_than,
-                     weighs_less_than=weighs_less_than)
+        self.views.add_default_view_predicates()
 
     def set_route_prefix(self, prefix):
-        self.route_prefix = prefix
+        self.router.route_prefix = prefix

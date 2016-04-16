@@ -1,7 +1,7 @@
 from .util import as_sorted_tuple
 
 
-class RequestMethodPredicate(object):
+class RequestMethodPredicate:
     def __init__(self, val, config):
         """
         :param val: value passed to view_config/view_defaults

@@ -30,7 +30,7 @@ class not_(object):
 
        from .config import not_
 
-       config.add_view(
+       config.views.add_view(
            'mypackage.views.my_view',
            route_name='ok',
            request_method=not_('POST')
@@ -42,9 +42,9 @@ class not_(object):
     This technique of wrapping a predicate value in ``not_`` can be used
     anywhere predicate values are accepted:
 
-    - :meth:`solo.configurator.config.Configurator.add_view`
+    - :meth:`solo.configurator.config.Configurator.views.add_view`
 
-    - :meth:`solo.configurator.config.Configurator.add_route`
+    - :meth:`solo.configurator.config.Configurator.router.add_route`
 
     - :meth:`pyramid.config.Configurator.add_subscriber`
 

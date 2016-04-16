@@ -1,11 +1,13 @@
 import inspect
 import functools
 
+import pkg_resources
+
 from .compat import is_nonstr_iter
 from .exceptions import ConfigurationError, CyclicDependencyError
 
 
-class Sentinel(object):
+class Sentinel:
     """  This class is a copy of ``pyramid.util.Sentinel``.
     """
     def __init__(self, repr):
@@ -19,7 +21,7 @@ FIRST = Sentinel('FIRST')
 LAST = Sentinel('LAST')
 
 
-class TopologicalSorter(object):
+class TopologicalSorter:
     """  This class is a copy of ``pyramid.util.TopologicalSorter``.
 
     A utility class which can be used to perform topological sorts against
@@ -185,7 +187,7 @@ def viewdefaults(wrapped):
             view = arg[0]
         else:
             view = kw.get('view')
-        view = self.maybe_dotted(view)
+        view = maybe_dotted(view)
         if inspect.isclass(view):
             defaults = getattr(view, '__view_defaults__', {}).copy()
 
@@ -198,3 +200,24 @@ def viewdefaults(wrapped):
         defaults.update(kw)
         return wrapped(self, *arg, **defaults)
     return functools.wraps(wrapped)(wrapper)
+
+
+def _pkg_resources_style(value):
+    """ This method is taken from Pyramid Web Framework.
+
+    package.module:attr style
+    """
+    # Calling EntryPoint.load with an argument is deprecated.
+    # See https://pythonhosted.org/setuptools/history.html#id8
+    ep = pkg_resources.EntryPoint.parse('x={}'.format(value))
+    if hasattr(ep, 'resolve'):
+        # setuptools>=10.2
+        return ep.resolve()  # pragma: NO COVER
+    else:
+        return ep.load(False)  # pragma: NO COVER
+
+
+def maybe_dotted(dotted):
+    if not isinstance(dotted, str):
+        return dotted
+    return _pkg_resources_style(dotted)

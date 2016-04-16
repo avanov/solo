@@ -38,7 +38,7 @@ def register_routes(webapp: web.Application, configurator: Configurator) -> web.
     #                     probabilities.handlers.handler)
     # Setup routes
     # ------------
-    for route in configurator.routes.values():
+    for route in configurator.router.routes.values():
         log.debug('Registering route {}'.format(route.name))
         handler = PredicatedHandler(route.viewlist)
         webapp.router.add_route(method='*',

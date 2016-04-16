@@ -1,12 +1,15 @@
 import inspect
 
 from . import predicates as default_predicates
-from ..exceptions import ConfigurationError
 from ..util import viewdefaults
-from .routes import Route, RouteItem
+from .routes import ViewMeta
+from .util import PredicateList
 
 
-class ViewsConfiguratorMixin(object):
+class ViewsConfigurator:
+
+    def __init__(self):
+        self.predicates = PredicateList()
 
     @viewdefaults
     def add_view(self,
@@ -16,7 +19,7 @@ class ViewsConfiguratorMixin(object):
                  attr=None,
                  decorator=None,
                  renderer=None,
-                 **predicates):
+                 **predicates) -> ViewMeta:
         """
 
         :param view: callable
@@ -41,19 +44,12 @@ class ViewsConfiguratorMixin(object):
         :param renderer:
         :param predicates: Pass a key/value pair here to use a third-party predicate
                            registered via
-                           :meth:`solo.configurator.config.Configurator.add_view_predicate`.
+                           :meth:`solo.configurator.config.Configurator.views.add_view_predicate`.
                            More than one key/value pair can be used at the same time. See
                            :ref:`view_and_route_predicates` for more information about
                            third-party predicates.
         :return: :raise ConfigurationError:
         """
-        try:
-            route = self.routes[route_name]  # type: Route
-        except KeyError:
-            raise ConfigurationError(
-                'No route named {route_name} found for view registration'.format(route_name=route_name)
-            )
-
         # Parse view
         # -----------------------------------------------
         if inspect.isclass(view) and attr is None:
@@ -93,20 +89,27 @@ class ViewsConfiguratorMixin(object):
         if renderer is None:
             renderer = 'string'
 
-        # Save
+        # Done
         # -------------------------------------
-        route_item = RouteItem(view=view,
-                               attr=attr,
-                               renderer=self.get_renderer(renderer),
-                               predicates=preds)
-        route.viewlist.append(route_item)
+        view_item = ViewMeta(route_name=route_name,
+                             view=view,
+                             attr=attr,
+                             renderer=renderer,
+                             predicates=preds)
+        return view_item
+
+    def get_predlist(self, name):
+        """ This is a stub method that simply has the same signature as pyramid's version,
+        but does nothing but returning ``self.predicates``
+        """
+        return self.predicates
 
     def add_view_predicate(self, name, factory, weighs_more_than=None,
                            weighs_less_than=None):
         """
         Adds a view predicate factory.  The associated view predicate can
         later be named as a keyword argument to
-        :meth:`solo.configurator.config.Configurator.add_view` in the
+        :meth:`solo.configurator.config.Configurator.views.add_view` in the
         ``predicates`` anonymous keyword argument dictionary.
 
         ``name`` should be the name of the predicate.  It must be a valid
@@ -132,3 +135,18 @@ class ViewsConfiguratorMixin(object):
             ('request_method', p.RequestMethodPredicate),
             ):
             self.add_view_predicate(name, factory)
+
+
+    def _add_predicate(self, type, name, factory, weighs_more_than=None, weighs_less_than=None):
+        """ This method is a highly simplified equivalent to what you can find in Pyramid.
+
+        :param type: may be only 'view' at the moment
+        :type type: str
+        :param name: valid python identifier string.
+        :type name: str
+        :param weighs_more_than: not used at the moment
+        :param weighs_less_than: not used at the moment
+        """
+        predlist = self.get_predlist(type)
+        predlist.add(name, factory, weighs_more_than=weighs_more_than,
+                     weighs_less_than=weighs_less_than)
