@@ -11,20 +11,33 @@ log = logging.getLogger(__name__)
 class RoutesConfigurator:
     def __init__(self, route_prefix: str):
         self.route_prefix = route_prefix
+        self.namespace = 'solo'
         self.routes = OrderedDict()
+        self.routes[self.namespace] = OrderedDict()
+
+    def change_route_prefix(self, prefix: str) -> str:
+        old_prefix = self.route_prefix
+        self.route_prefix = prefix
+        return old_prefix
+
+    def change_namespace(self, new: str) -> str:
+        old = self.namespace
+        self.namespace = new
+        self.routes.setdefault(new, OrderedDict())
+        return old
 
     def add_route(self, name: str, pattern, rules=None, extra_kwargs=None):
-        log.debug('Adding route {}'.format(name))
+        log.debug('Registering route {} in the {} namespace'.format(name, self.namespace))
         pattern = u'{}/{}'.format(self.route_prefix.rstrip('/'), pattern.lstrip('/'))
-        self.routes[name] = Route(name=name,
-                                  pattern=pattern,
-                                  rules=rules,
-                                  extra_kwargs=extra_kwargs,
-                                  viewlist=[])
+        self.routes[self.namespace][name] = Route(name=name,
+                                                  pattern=pattern,
+                                                  rules=rules,
+                                                  extra_kwargs=extra_kwargs,
+                                                  viewlist=[])
 
     def check_routes_consistency(self, package):
-        log.debug('Checking routes consistency for {}...'.format(package))
-        for route_name, route in self.routes.items():
+        log.debug('Checking routes consistency for {}...'.format(package.__name__))
+        for route_name, route in self.routes[package.__name__].items():
             viewlist = route.viewlist
             if not viewlist:
                 raise ConfigurationError(

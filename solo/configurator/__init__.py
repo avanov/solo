@@ -2,6 +2,7 @@ import inspect
 import logging
 import pkgutil
 from typing import Optional
+from types import ModuleType
 
 import ramlfications as raml
 import venusian
@@ -36,31 +37,28 @@ class Configurator:
         self.router = router_configurator(route_prefix)
         self.views = views_configurator()
         self.rendering = rendering_configurator()
-        # Predicates machinery
-        # --------------------
-
-        self.setup_registry()
+        self.setup_configurator()
 
     def include(self, callable, route_prefix: Optional[str] = None):
-        if route_prefix is None:
-            route_prefix = ''
+        """
+        :param callable: package to be configured
+        :param route_prefix:
+        :return:
+        """
+        configuration_section = maybe_dotted(callable)  # type: ModuleType
+        old_namespace = self.router.change_namespace(configuration_section.__package__)
 
-        old_route_prefix = self.router.route_prefix
-        route_prefix = u'{}/{}'.format(old_route_prefix.rstrip('/'), route_prefix.lstrip('/'))
-        self.set_route_prefix(route_prefix)
-
-        c = maybe_dotted(callable)
-        module = self.inspect.getmodule(c)
-        if module is c:
+        module = self.inspect.getmodule(configuration_section)
+        if module is configuration_section:
             try:
-                c = getattr(module, 'includeme')
+                configuration_section = getattr(module, 'includeme')
                 log.debug('Including {}'.format(callable))
             except AttributeError:
                 raise ConfigurationError(
                     "module {} has no attribute 'includeme'".format(module.__name__)
                 )
 
-        sourcefile = self.inspect.getsourcefile(c)
+        sourcefile = self.inspect.getsourcefile(configuration_section)
 
         if sourcefile is None:
             raise ConfigurationError(
@@ -68,8 +66,14 @@ class Configurator:
                 'refusing to use orphan .pyc or .pyo file).'.format(module.__name__)
             )
 
-        c(self)
-        self.set_route_prefix(old_route_prefix)
+        if route_prefix is None:
+            route_prefix = ''
+        route_prefix = u'{}/{}'.format(self.router.route_prefix.rstrip('/'), route_prefix.lstrip('/'))
+        old_route_prefix = self.router.change_route_prefix(route_prefix)
+
+        configuration_section(self)
+        self.router.change_namespace(old_namespace)
+        self.router.change_route_prefix(old_route_prefix)
 
     def include_api_specs(self, package: str, path: str):
         log.debug('Including API specs: {}:{}'.format(package, path))
@@ -81,7 +85,7 @@ class Configurator:
         specs = raml.parse_raml(data, raml_config)
         for res in specs.resources:
             route = '{}/{}'.format(self.router.route_prefix.rstrip('/'), res.name.lstrip('/')).rstrip('/')
-            log.debug('\tRegistering API resource: {}'.format(route))
+            log.debug('\tRegistering API resource {} in the namespace {}'.format(route, self.router.namespace))
 
     def scan(self, package=None, categories=None, onerror=None, ignore=None):
         if package is None:
@@ -89,17 +93,18 @@ class Configurator:
         package = maybe_dotted(package)
         log.debug('Scanning {}'.format(package))
         scanner = self.venusian.Scanner(config=self)
+        previous_namespace = scanner.config.router.change_namespace(package.__name__)
         scanner.scan(package, categories=categories, onerror=onerror, ignore=ignore)
         self.router.check_routes_consistency(package)
+        scanner.config.router.change_namespace(previous_namespace)
         log.debug('End scanning {}'.format(package))
 
-    def setup_registry(self):
+    def setup_configurator(self):
         # Add default renderers
         # ---------------------
         for name, renderer in BUILTIN_RENDERERS.items():
             self.rendering.add_renderer(name, renderer)
 
+        # Predicates machinery
+        # --------------------
         self.views.add_default_view_predicates()
-
-    def set_route_prefix(self, prefix):
-        self.router.route_prefix = prefix

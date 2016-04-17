@@ -23,12 +23,18 @@ class http_endpoint:
 
         def callback(scanner, name, obj):
             view_item = scanner.config.views.add_view(view=obj, **settings)
+            namespace = scanner.config.router.namespace
             try:
-                route = scanner.config.router.routes[view_item.route_name]  # type: Route
+                routes_namespace = scanner.config.router.routes[namespace]
+            except KeyError:
+                raise ConfigurationError("Namespace was not included: {}".format(namespace))
+            try:
+                route = routes_namespace[view_item.route_name]  # type: Route
             except KeyError:
                 raise ConfigurationError(
-                    'No route named {route_name} found for view registration'.format(
-                        route_name=view_item.route_name
+                    'No route named {route_name} found for view registration within {namespace} namespace.'.format(
+                        route_name=view_item.route_name,
+                        namespace=namespace
                     )
                 )
             renderer = scanner.config.rendering.get_renderer(view_item.renderer)
