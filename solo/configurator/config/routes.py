@@ -1,3 +1,4 @@
+import os
 from collections import OrderedDict
 from typing import List, Optional
 import logging
@@ -26,9 +27,16 @@ class RoutesConfigurator:
         self.routes.setdefault(new, OrderedDict())
         return old
 
-    def add_route(self, name: str, pattern, rules=None, extra_kwargs=None):
-        log.debug('Registering route {} in the {} namespace'.format(name, self.namespace))
-        pattern = u'{}/{}'.format(self.route_prefix.rstrip('/'), pattern.lstrip('/'))
+    def add_route(self, name: str, pattern: str, rules=None, extra_kwargs=None):
+        pattern = os.path.join(self.route_prefix, pattern.strip('/')).rstrip('/')
+        if not pattern:
+            pattern = '/'
+
+        log.debug('Registering global route "{pattern}" with the local name "{name}" in the {namespace} namespace'.format(
+            pattern=pattern,
+            name=name,
+            namespace=self.namespace
+        ))
         self.routes[self.namespace][name] = Route(name=name,
                                                   pattern=pattern,
                                                   rules=rules,
@@ -36,17 +44,24 @@ class RoutesConfigurator:
                                                   viewlist=[])
 
     def check_routes_consistency(self, package):
-        log.debug('Checking routes consistency for {}...'.format(package.__name__))
-        for route_name, route in self.routes[package.__name__].items():
+        namespace = package.__name__
+        log.debug('Checking routes consistency for {}...'.format(namespace))
+        for route_name, route in self.routes[namespace].items():
             viewlist = route.viewlist
             if not viewlist:
                 raise ConfigurationError(
-                    'Route name "{name}" is not associated with a view callable.'.format(name=route_name)
+                    'Route name "{name}" is not associated with a view callable in the {namespace} namespace.'.format(
+                        name=route_name,
+                        namespace=namespace
+                    )
                 )
             for view_item in viewlist:
                 if view_item.view is None:
                     raise ConfigurationError(
-                        'Route name "{name}" is not associated with a view callable.'.format(name=route_name)
+                        'Route name "{name}" is not associated with a view callable in the {namespace} namespace.'.format(
+                            name=route_name,
+                            namespace=namespace
+                        )
                     )
 
 

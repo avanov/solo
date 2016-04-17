@@ -1,3 +1,4 @@
+import uuid
 import asyncio
 from typing import Any, Dict
 import logging
@@ -38,12 +39,15 @@ def register_routes(webapp: web.Application, configurator: Configurator) -> web.
     #                     probabilities.handlers.handler)
     # Setup routes
     # ------------
-    for application_routes in configurator.router.routes.values():
+    for app_namespace, application_routes in configurator.router.routes.items():
         for route in application_routes.values():
-            log.debug('Binding route {} to the handler named {}.'.format(route.pattern, route.name))
+            log.debug('Binding route {} to the handler named {} in the namespace {}.'.format(
+                route.pattern, route.name, app_namespace
+            ))
             handler = PredicatedHandler(route.viewlist)
+            verbose_route_name = route.pattern.replace('/', '_').replace('{', '_').replace('}', '_')
             webapp.router.add_route(method='*',
                                     path=route.pattern,
-                                    name=route.name,
+                                    name=verbose_route_name,
                                     handler=handler)
     return webapp

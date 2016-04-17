@@ -84,8 +84,7 @@ class Configurator:
         raml_config["validate"] = True
         specs = raml.parse_raml(data, raml_config)
         for res in specs.resources:
-            route = '{}/{}'.format(self.router.route_prefix.rstrip('/'), res.name.lstrip('/')).rstrip('/')
-            log.debug('\tRegistering API resource {} in the namespace {}'.format(route, self.router.namespace))
+            self.router.add_route(name=res.name, pattern=res.name)
 
     def scan(self, package=None, categories=None, onerror=None, ignore=None):
         if package is None:
