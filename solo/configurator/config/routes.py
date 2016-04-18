@@ -32,6 +32,11 @@ class RoutesConfigurator:
         if not pattern:
             pattern = '/'
 
+        if name in self.routes[self.namespace]:
+            raise ConfigurationError('Route named "{}" is already registered in the namespace {}'.format(
+                name, self.namespace
+            ))
+
         log.debug('Registering global route "{pattern}" with the local name "{name}" in the {namespace} namespace'.format(
             pattern=pattern,
             name=name,
