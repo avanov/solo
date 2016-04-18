@@ -1,6 +1,8 @@
 import logging
 from typing import List
-from .config.routes import RouteItem
+from .config.routes import ViewMeta
+from .config.routes import Route
+from .exceptions import ConfigurationError
 from aiohttp.web import Request, Response, HTTPNotFound
 
 import venusian
@@ -20,7 +22,24 @@ class http_endpoint:
         depth = settings.pop('_depth', 0)
 
         def callback(scanner, name, obj):
-            scanner.config.add_view(view=obj, **settings)
+            view_item = scanner.config.views.add_view(view=obj, **settings)
+            namespace = scanner.config.router.namespace
+            try:
+                routes_namespace = scanner.config.router.routes[namespace]
+            except KeyError:
+                raise ConfigurationError("Namespace was not included: {}".format(namespace))
+            try:
+                route = routes_namespace[view_item.route_name]  # type: Route
+            except KeyError:
+                raise ConfigurationError(
+                    'No route named {route_name} found for view registration within {namespace} namespace.'.format(
+                        route_name=view_item.route_name,
+                        namespace=namespace
+                    )
+                )
+            renderer = scanner.config.rendering.get_renderer(view_item.renderer)
+            view_item.renderer = renderer
+            route.viewlist.append(view_item)
 
         info = self.venusian.attach(wrapped, callback, category='solo', depth=depth + 1)
         if info.scope == 'class':
@@ -50,25 +69,25 @@ class http_defaults(http_endpoint):
 class PredicatedHandler:
     __slots__ = ['viewlist']
 
-    def __init__(self, viewlist: List[RouteItem]):
+    def __init__(self, viewlist: List[ViewMeta]):
         self.viewlist = viewlist
 
     async def __call__(self, request: Request):
         """ Resolve predicates here.
         """
         # here predicate is an instance object
-        for route_item in self.viewlist:
-            for predicate in route_item.predicates:
+        for view_item in self.viewlist:
+            for predicate in view_item.predicates:
                 if not predicate(None, request):
                     log.debug('Predicate {} failed for {} {}'.format(predicate, request.method, request.path_qs))
                     break
             else:
                 # All predicates match
-                log.debug('{} {} will be handled by {}'.format(request.method, request.path_qs, route_item.view))
-                handler = route_item.view
-                if route_item.attr:
+                log.debug('{} {} will be handled by {}'.format(request.method, request.path_qs, view_item.view))
+                handler = view_item.view
+                if view_item.attr:
                     # handler is a coroutine method of a class
-                    handler = getattr(handler(request), route_item.attr)
+                    handler = getattr(handler(request), view_item.attr)
                     response = await handler()
                 else:
                     # handler is a simple coroutine
@@ -77,7 +96,7 @@ class PredicatedHandler:
                 if isinstance(response, Response):
                     # Do not process standard responses
                     return response
-                renderer = route_item.renderer
+                renderer = view_item.renderer
                 return renderer(request, response)
 
         log.debug('All predicates have failed for {} {}'.format(request.method, request.path_qs))

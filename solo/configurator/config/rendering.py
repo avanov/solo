@@ -34,7 +34,10 @@ BUILTIN_RENDERERS = {
 }
 
 
-class RenderingConfiguratorMixin(object):
+class RenderingConfigurator:
+
+    def __init__(self):
+        self.renderers = {}
 
     def add_renderer(self, name, factory):
         self.renderers[name] = factory
