@@ -8,7 +8,7 @@
     :target: https://gemnasium.com/avanov/solo
 
 .. image:: https://readthedocs.org/projects/solo/badge/?version=develop
-    :target: http://solo.readthedocs.org/en/develop/?badge=develop
+    :target: http://solo.readthedocs.org/en/develop/
     :alt: Documentation Status
 
 Host prerequisites
