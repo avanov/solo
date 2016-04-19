@@ -11,6 +11,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   integrations.rst
+
 
 
 Indices and tables

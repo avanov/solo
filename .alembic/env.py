@@ -1,7 +1,5 @@
 from alembic import context
-from sqlalchemy import engine_from_config, pool, create_engine
 from logging.config import fileConfig
-from solo.cli import parse_app_config
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -15,8 +13,8 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-import solo.server.model
-target_metadata = solo.server.model.Base.metadata
+from solo.integrations import alembic as solo_alembic
+target_metadata = solo_alembic.collect_metadata(config)
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -44,26 +42,7 @@ def run_migrations_offline():
         context.run_migrations()
 
 
-def run_migrations_online():
-    """Run migrations in 'online' mode.
-
-    In this scenario we need to create an Engine
-    and associate a connection with the context.
-
-    """
-    dbconf = parse_app_config(['./config.yml'])['postgresql']
-    connectable = create_engine(
-        'postgresql+psycopg2://{user}:{password}@{host}:{port}/{dbname}'.format(**dbconf),
-        poolclass=pool.NullPool)
-
-    with connectable.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata
-        )
-
-        with context.begin_transaction():
-            context.run_migrations()
+run_migrations_online = solo_alembic.get_run_migrations_online(config, target_metadata, context)
 
 if context.is_offline_mode():
     run_migrations_offline()
