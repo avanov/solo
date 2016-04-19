@@ -7,6 +7,10 @@
 .. image:: https://gemnasium.com/avanov/solo.svg
     :target: https://gemnasium.com/avanov/solo
 
+.. image:: https://readthedocs.org/projects/solo/badge/?version=develop
+    :target: http://solo.readthedocs.org/en/develop/?badge=develop
+    :alt: Documentation Status
+
 Host prerequisites
 ------------------
 

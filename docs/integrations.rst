@@ -1,5 +1,5 @@
-Alembic
--------
+Alembic integration
+-------------------
 
 Add ``[solo]`` section to your ``alembic.ini`` config:
 
