@@ -1,3 +1,5 @@
+.. _badges:
+
 .. image:: https://travis-ci.org/avanov/solo.svg?branch=develop
     :target: https://travis-ci.org/avanov/solo
 
@@ -10,6 +12,16 @@
 .. image:: https://readthedocs.org/projects/solo/badge/?version=develop
     :target: http://solo.readthedocs.org/en/develop/
     :alt: Documentation Status
+
+.. image:: http://img.shields.io/pypi/v/solo.svg
+    :target: https://pypi.python.org/pypi/solo
+
+.. image:: http://img.shields.io/pypi/dm/solo.svg
+    :target: https://pypi.python.org/pypi/solo
+
+
+**Development status: Early Alpha**
+
 
 Host prerequisites
 ------------------
