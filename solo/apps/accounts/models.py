@@ -9,7 +9,7 @@ from solo.configurator.models import register_model
 class AuthProvider(enum.Enum):
     EMAIL = 'email'
     GITHUB = 'github'
-
+    FACEBOOK = 'facebook'
 
 
 @register_model(category='users')
@@ -17,6 +17,7 @@ class User(Base):
     __tablename__ = 'users'
 
     id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.Unicode(140), nullable=False, default='', server_default='')
 
 
 class Auth(Base):
@@ -26,3 +27,8 @@ class Auth(Base):
     provider = sa.Column(PythonMappedEnum(AuthProvider), nullable=False)
     user_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=False, index=True)
     auth_key = sa.Column(sa.Unicode(140), nullable=False, default='', server_default='', index=True)
+
+    __table_args__ = (
+        sa.UniqueConstraint('provider', 'user_id', name='uniq_provider_user_id'),
+        sa.UniqueConstraint('provider', 'auth_key', name='uniq_provider_auth_key')
+    )
