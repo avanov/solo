@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 
 
 async def setup_database(loop: asyncio.AbstractEventLoop,
-                   config: Dict[str, Any]) -> aiopg.sa.Engine:
+                         config: Dict[str, Any]) -> aiopg.sa.Engine:
     """ Configure and return sqlalchemy's Engine instance with a
     built-in connection pool.
     """

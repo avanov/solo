@@ -13,6 +13,13 @@ postgresql:
   min_connections: 1
   max_connections: 10
 
+redis:
+  host: 127.0.0.1
+  port: 6379
+  db: 0
+  min_connections: 1
+  max_connections: 10
+
 apps:
   solo.apps.accounts:
     url_prefix: /users

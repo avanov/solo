@@ -63,6 +63,11 @@ def run_cmd(args: List[str]):
             app.dbengine.terminate()
             loop.run_until_complete(app.dbengine.wait_closed())
 
+        # Close memstore pool
+        if hasattr(app, 'memstore'):
+            log.debug('Closing memory store connections...')
+            loop.run_until_complete(app.memstore.clear())
+
         # all the rest
         srv.close()
         loop.run_until_complete(srv.wait_closed())

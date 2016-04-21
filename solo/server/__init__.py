@@ -6,6 +6,7 @@ import logging
 from aiohttp import web
 
 from . import db
+from . import memstore
 from ..configurator import Configurator
 from ..configurator.view import PredicatedHandler
 
@@ -31,6 +32,11 @@ async def init_webapp(loop: asyncio.AbstractEventLoop,
     # ------------------------------
     engine = await db.setup_database(loop, config)
     setattr(webapp, 'dbengine', engine)
+
+    # Setup memory store
+    # ------------------
+    memstore_pool = await memstore.init_pool(loop, config)
+    setattr(webapp, 'memstore', memstore_pool)
     return webapp
 
 
