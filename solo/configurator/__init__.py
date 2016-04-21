@@ -83,8 +83,14 @@ class Configurator:
         raml_config = raml.setup_config(None)
         raml_config["validate"] = True
         specs = raml.parse_raml(data, raml_config)
+        processed = set()
         for res in specs.resources:
+            if res.name in processed:
+                continue
+            if not res.method:
+                continue
             self.router.add_route(name=res.name, pattern=res.name)
+            processed.add(res.name)
 
     def scan(self, package=None, categories=None, onerror=None, ignore=None):
         if package is None:

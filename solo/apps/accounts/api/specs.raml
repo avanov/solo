@@ -16,5 +16,10 @@ protocols:
   get:
     description: List registered accounts
 
-  /{userId}:
-    description: LLL
+/{userId}:
+  get:
+    description: Get account details
+  post:
+    description: Update account details
+  delete:
+    description: Delete account
