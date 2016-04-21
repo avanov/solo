@@ -1,12 +1,12 @@
-import enum
 import sqlalchemy as sa
 
+from solo import SumType
 from solo.server.model import Base
 from solo.server.db.types import PythonMappedEnum
 from solo.configurator.models import register_model
 
 
-class AuthProvider(enum.Enum):
+class AuthProvider(SumType):
     EMAIL = 'email'
     GITHUB = 'github'
     FACEBOOK = 'facebook'
@@ -27,6 +27,8 @@ class Auth(Base):
     provider = sa.Column(PythonMappedEnum(AuthProvider), nullable=False)
     user_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=False, index=True)
     auth_key = sa.Column(sa.Unicode(140), nullable=False, default='', server_default='', index=True)
+    """ Authentication key
+    """
 
     __table_args__ = (
         sa.UniqueConstraint('provider', 'user_id', name='uniq_provider_user_id'),

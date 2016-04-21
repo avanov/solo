@@ -12,6 +12,7 @@ from .config.rendering import BUILTIN_RENDERERS
 from .config.rendering import RenderingConfigurator
 from .config.routes import RoutesConfigurator
 from .config.views import ViewsConfigurator
+from .config.sums import SumTypesConfigurator
 from .exceptions import ConfigurationError
 from .path import caller_package
 from .view import http_defaults
@@ -31,12 +32,14 @@ class Configurator:
                  route_prefix=None,
                  router_configurator=RoutesConfigurator,
                  views_configurator=ViewsConfigurator,
-                 rendering_configurator=RenderingConfigurator):
+                 rendering_configurator=RenderingConfigurator,
+                 sum_types_configurator=SumTypesConfigurator):
         if route_prefix is None:
             route_prefix = ''
         self.router = router_configurator(route_prefix)
         self.views = views_configurator()
         self.rendering = rendering_configurator()
+        self.sums = sum_types_configurator()
         self.setup_configurator()
 
     def include(self, callable, route_prefix: Optional[str] = None):
@@ -101,6 +104,7 @@ class Configurator:
         previous_namespace = scanner.config.router.change_namespace(package.__name__)
         scanner.scan(package, categories=categories, onerror=onerror, ignore=ignore)
         self.router.check_routes_consistency(package)
+        self.sums.check_sum_types_consistency(package)
         scanner.config.router.change_namespace(previous_namespace)
         log.debug('End scanning {}'.format(package))
 
