@@ -54,7 +54,7 @@ logging:
     sqlalchemy:
       level: DEBUG
       handlers: [console]
-      propagate: yes
+      propagate: no
     solo:
       level: DEBUG
       handlers: [console]
