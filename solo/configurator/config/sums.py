@@ -1,6 +1,7 @@
 import re
 import venusian
 from typing import Dict, Any
+from collections import OrderedDict
 
 from ..exceptions import ConfigurationError
 
@@ -226,7 +227,7 @@ class SumType(metaclass=SumTypeMetaclass):
 class SumTypesConfigurator:
 
     def __init__(self):
-        self.sum_types = {}  # type: Dict[str, SumTypeMetaData]
+        self.sum_types = OrderedDict()  # type: Dict[str, SumTypeMetaData]
 
     def update_sum_type_registry(self, sum_type_meta: SumTypeMetaData):
         self.sum_types[sum_type_meta.type] = sum_type_meta
@@ -238,7 +239,7 @@ class SumTypesConfigurator:
                     if implementation is None:
                         raise ConfigurationError(
                             'Category "{category_name}" of the sum type {type} is not exhaustive. '
-                            'Here is the variant that is not matched: {variant} '
+                            'Here is the missing variant: {variant} '
                             .format(
                                 category_name=category_name,
                                 type=sum_type_meta.type,
