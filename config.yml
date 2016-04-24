@@ -24,6 +24,9 @@ apps:
   solo.apps.accounts:
     url_prefix: /users
 
+  solo.apps.oauth:
+    url_prefix: /o
+
   solo.apps.hello:
     url_prefix: /solo
 
