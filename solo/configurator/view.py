@@ -1,4 +1,5 @@
 import logging
+import inspect
 from typing import List
 from .config.routes import ViewMeta
 from .config.routes import Route
@@ -39,7 +40,7 @@ class http_endpoint:
                 )
             renderer = scanner.config.rendering.get_renderer(view_item.renderer)
             view_item.renderer = renderer
-            route.viewlist.append(view_item)
+            route.view_metas.append(view_item)
 
         info = self.venusian.attach(wrapped, callback, category='solo', depth=depth + 1)
         if info.scope == 'class':
@@ -67,16 +68,16 @@ class http_defaults(http_endpoint):
 
 
 class PredicatedHandler:
-    __slots__ = ['viewlist']
+    __slots__ = ['view_metas']
 
-    def __init__(self, viewlist: List[ViewMeta]):
-        self.viewlist = viewlist
+    def __init__(self, view_metas: List[ViewMeta]):
+        self.view_metas = view_metas
 
     async def __call__(self, request: Request):
         """ Resolve predicates here.
         """
         # here predicate is an instance object
-        for view_item in self.viewlist:
+        for view_item in self.view_metas:
             for predicate in view_item.predicates:
                 if not predicate(None, request):
                     log.debug('Predicate {} failed for {} {}'.format(predicate, request.method, request.path_qs))

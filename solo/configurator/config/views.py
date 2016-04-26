@@ -1,9 +1,11 @@
 import inspect
+from typing import Optional
 
 from . import predicates as default_predicates
 from ..util import viewdefaults
 from .routes import ViewMeta
 from .util import PredicateList
+from ..exceptions import ConfigurationError
 
 
 class ViewsConfigurator:
@@ -14,7 +16,7 @@ class ViewsConfigurator:
     @viewdefaults
     def add_view(self,
                  view=None,
-                 route_name=None,
+                 route_name: Optional[str] = None,
                  request_method=None,
                  attr=None,
                  decorator=None,
@@ -24,7 +26,6 @@ class ViewsConfigurator:
 
         :param view: callable
         :param route_name:
-        :type route_name: str or None
         :param request_method:
         :type request_method: str or tuple
         :param attr:
@@ -52,8 +53,14 @@ class ViewsConfigurator:
         """
         # Parse view
         # -----------------------------------------------
-        if inspect.isclass(view) and attr is None:
-            attr = '__call__'
+        if inspect.isclass(view):
+            if attr is None:
+                attr = '__call__'
+
+            # Check attr type
+            actual_view = getattr(view, attr)
+            if not inspect.iscoroutinefunction(actual_view):
+                raise ConfigurationError('Http endpoint {} must be defined as a coroutine.'.format(actual_view))
 
         # Add decorators
         # -----------------------------------------------

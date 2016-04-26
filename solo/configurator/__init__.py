@@ -17,6 +17,7 @@ from .exceptions import ConfigurationError
 from .path import caller_package
 from .view import http_defaults
 from .view import http_endpoint
+from .url import normalize_route_pattern
 
 __all__ = ['http_endpoint', 'http_defaults', 'Configurator']
 
@@ -92,7 +93,8 @@ class Configurator:
                 continue
             if not res.method:
                 continue
-            self.router.add_route(name=res.name, pattern=res.name)
+            pattern, rules = normalize_route_pattern(res.path)
+            self.router.add_route(name=pattern, pattern=pattern, rules=rules)
             processed.add(res.name)
 
     def scan(self, package=None, categories=None, onerror=None, ignore=None):

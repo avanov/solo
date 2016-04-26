@@ -165,7 +165,7 @@ class SumType(metaclass=SumTypeMetaclass):
 
         if variant is None:
             raise cls.Mismatch(
-                u'Variant value "{value}" is not a part of the type {type}: {values}'.format(
+                'Variant value "{value}" is not a part of the type {type}: {values}'.format(
                     value=value,
                     type=cls.__sum_meta__.type,
                     values=u', '.join(['{val} => {var}'.format(val=val, var=var)
@@ -211,7 +211,7 @@ class SumType(metaclass=SumTypeMetaclass):
                         return fun
 
             raise cls.Mismatch(
-                u'Variant value "{value}" is not a part of the type {type}: {values}'.format(
+                'Variant value "{value}" is not a part of the type {type}: {values}'.format(
                     value=value,
                     type=cls.__sum_meta__.type,
                     values=u', '.join(['{val} => {var}'.format(val=val, var=var)

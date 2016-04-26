@@ -2,4 +2,4 @@ from solo import Configurator
 
 
 def includeme(config: Configurator):
-    pass
+    config.include_api_specs(__name__, 'api/specs.raml')

@@ -1,9 +1,10 @@
 import os
 from collections import OrderedDict
-from typing import List, Optional
+from typing import List, Optional, Dict
 import logging
 
 from ..exceptions import ConfigurationError
+from .sums import SumType
 
 
 log = logging.getLogger(__name__)
@@ -27,10 +28,13 @@ class RoutesConfigurator:
         self.routes.setdefault(new, OrderedDict())
         return old
 
-    def add_route(self, name: str, pattern: str, rules=None, extra_kwargs=None):
+    def add_route(self, name: str, pattern: str, rules: Optional[Dict[str, SumType]] = None, extra_kwargs=None):
         pattern = os.path.join(self.route_prefix, pattern.strip('/')).rstrip('/')
         if not pattern:
             pattern = '/'
+
+        if rules is None:
+            rules = {}
 
         if name in self.routes[self.namespace]:
             raise ConfigurationError('Route named "{}" is already registered in the namespace {}'.format(
@@ -46,21 +50,21 @@ class RoutesConfigurator:
                                                   pattern=pattern,
                                                   rules=rules,
                                                   extra_kwargs=extra_kwargs,
-                                                  viewlist=[])
+                                                  view_metas=[])
 
     def check_routes_consistency(self, package):
         namespace = package.__name__
         log.debug('Checking routes consistency for {}...'.format(namespace))
         for route_name, route in self.routes[namespace].items():
-            viewlist = route.viewlist
-            if not viewlist:
+            view_metas = route.view_metas
+            if not view_metas:
                 raise ConfigurationError(
                     'Route name "{name}" is not associated with a view callable in the {namespace} namespace.'.format(
                         name=route_name,
                         namespace=namespace
                     )
                 )
-            for view_item in viewlist:
+            for view_item in view_metas:
                 if view_item.view is None:
                     raise ConfigurationError(
                         'Route name "{name}" is not associated with a view callable in the {namespace} namespace.'.format(
@@ -82,11 +86,11 @@ class ViewMeta:
 
 
 class Route:
-    __slots__ = ['name', 'pattern', 'rules', 'extra_kwargs', 'viewlist']
+    __slots__ = ['name', 'pattern', 'rules', 'extra_kwargs', 'view_metas']
 
-    def __init__(self, name: str, pattern, rules, extra_kwargs, viewlist: List[ViewMeta]):
+    def __init__(self, name: str, pattern, rules, extra_kwargs, view_metas: List[ViewMeta]):
         self.name = name
         self.pattern = pattern
-        self.rules = rules
         self.extra_kwargs = extra_kwargs
-        self.viewlist = viewlist
+        self.rules = rules
+        self.view_metas = view_metas

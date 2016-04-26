@@ -1,6 +1,6 @@
 #%RAML 0.8
 # specs at https://github.com/raml-org/raml-spec/blob/master/raml-0.8.md
-title: Solo Accounts API
+title: Solo Auth API
 version: 1.0
 mediaType: application/json
 baseUri: https://{host}/{appPrefix}
@@ -12,15 +12,7 @@ baseUriParameters:
 protocols:
   - HTTPS
 
-/:
-  get:
-    description: List registered accounts
-
-/{userId}:
-  get:
-    description: Get account details
-  post:
-    description: Update account details
-  delete:
-    description: Delete account
-
+/login:
+  /{provider:<solo.apps.auth.models:AuthProvider>}:
+    get:
+      description: Initiate authentication

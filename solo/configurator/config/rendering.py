@@ -22,7 +22,7 @@ class StringRendererFactory(object):
         self.name = name
 
     def __call__(self, request, view_response):
-        return Response(text=view_response,
+        return Response(text=str(view_response),
                         content_type='text/plain',
                         charset='utf-8',
                         status=200)

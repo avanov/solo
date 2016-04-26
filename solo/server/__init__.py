@@ -8,7 +8,8 @@ from aiohttp import web
 from . import db
 from . import memstore
 from ..configurator import Configurator
-from ..configurator.view import PredicatedHandler
+from ..configurator.view import PredicatedHandler, Route
+from ..configurator.url import complete_route_pattern
 
 
 log = logging.getLogger(__name__)
@@ -46,14 +47,15 @@ def register_routes(webapp: web.Application, configurator: Configurator) -> web.
     # Setup routes
     # ------------
     for app_namespace, application_routes in configurator.router.routes.items():
-        for route in application_routes.values():
-            log.debug('Binding route {} to the handler named {} in the namespace {}.'.format(
-                route.pattern, route.name, app_namespace
-            ))
-            handler = PredicatedHandler(route.viewlist)
+        for route in application_routes.values():  # type: Route
+            handler = PredicatedHandler(route.view_metas)
+            guarded_route_pattern = complete_route_pattern(route.pattern, route.rules)
             verbose_route_name = route.pattern.replace('/', '_').replace('{', '_').replace('}', '_')
+            log.debug('Binding route {} to the handler named {} in the namespace {}.'.format(
+                guarded_route_pattern, route.name, app_namespace
+            ))
             webapp.router.add_route(method='*',
-                                    path=route.pattern,
+                                    path=guarded_route_pattern,
                                     name=verbose_route_name,
                                     handler=handler)
     return webapp

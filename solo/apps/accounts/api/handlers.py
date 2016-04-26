@@ -1,5 +1,6 @@
-from solo import http_defaults, http_endpoint
 from aiohttp import web
+
+from solo import http_defaults, http_endpoint
 
 
 @http_defaults(route_name='/')
@@ -9,7 +10,7 @@ class AccountsListHandler:
         self.request = request
 
     @http_endpoint(request_method='GET')
-    def get(self):
+    async def get(self):
         return {}
 
 
@@ -20,5 +21,5 @@ class AccountDetailsHandler:
         self.request = request
 
     @http_endpoint(request_method='GET')
-    def get(self):
+    async def get(self):
         return {}
