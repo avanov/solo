@@ -1,3 +1,6 @@
+""" A large portion of this sub-package is taken from Pyramid
+
+"""
 import inspect
 import logging
 import pkgutil
@@ -41,6 +44,7 @@ class Configurator:
         self.views = views_configurator()
         self.rendering = rendering_configurator()
         self.sums = sum_types_configurator()
+        self._directives = {}
         self.setup_configurator()
 
     def include(self, callable, route_prefix: Optional[str] = None):
@@ -119,3 +123,31 @@ class Configurator:
         # Predicates machinery
         # --------------------
         self.views.add_default_view_predicates()
+
+
+    def add_directive(self, directive, name=None, action_wrap=True):
+        """ THIS METHOD IS A MODIFIED COPY OF ``pyramid.config.Configurator.add_directive``.
+        MODIFIED ON: 2016-04-26.
+
+        DOCS: http://docs.pylonsproject.org/projects/pyramid/en/latest/api/config.html#pyramid.config.Configurator.add_directive
+        """
+        c = maybe_dotted(directive)
+        if name is None:
+            name = c.__name__
+        self._directives[name] = (c, action_wrap)
+
+
+    def __getattr__(self, name: str):
+        """ THIS METHOD IS A MODIFIED COPY OF ``pyramid.config.Configurator.__getattr__``.
+        MODIFIED ON: 2016-04-26.
+        """
+        directives = getattr(self, '_directives', {})
+        c = directives.get(name)
+        if c is None:
+            log.debug(directives)
+            raise AttributeError(name)
+        c, action_wrap = c
+        # Create a bound method (works on both Py2 and Py3)
+        # http://stackoverflow.com/a/1015405/209039
+        m = c.__get__(self, self.__class__)
+        return m
