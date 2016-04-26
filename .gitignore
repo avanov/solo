@@ -29,7 +29,7 @@ docs/_build
 *.pconf
 
 # do not track contents of private directories
-.*_priv/
+*_priv/
 
 # ansible temporary files
 deploy/*.retry
