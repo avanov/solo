@@ -34,17 +34,22 @@ class Configurator:
 
     def __init__(self,
                  route_prefix=None,
+                 registry=None,
                  router_configurator=RoutesConfigurator,
                  views_configurator=ViewsConfigurator,
                  rendering_configurator=RenderingConfigurator,
                  sum_types_configurator=SumTypesConfigurator):
         if route_prefix is None:
             route_prefix = ''
+        if registry is None:
+            registry = {}
+
         self.router = router_configurator(route_prefix)
         self.views = views_configurator()
         self.rendering = rendering_configurator()
         self.sums = sum_types_configurator()
         self._directives = {}
+        self.registry = registry
         self.setup_configurator()
 
     def include(self, callable, route_prefix: Optional[str] = None):

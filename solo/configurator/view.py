@@ -1,8 +1,8 @@
 import logging
-import inspect
-from typing import List
+from typing import List, Dict
 from .config.routes import ViewMeta
 from .config.routes import Route
+from .config.sums import SumType
 from .exceptions import ConfigurationError
 from aiohttp.web import Request, Response, HTTPNotFound
 
@@ -68,10 +68,11 @@ class http_defaults(http_endpoint):
 
 
 class PredicatedHandler:
-    __slots__ = ['view_metas']
+    __slots__ = ['rules', 'view_metas']
 
-    def __init__(self, view_metas: List[ViewMeta]):
+    def __init__(self, rules: Dict[str, SumType], view_metas: List[ViewMeta]):
         self.view_metas = view_metas
+        self.rules = rules
 
     async def __call__(self, request: Request):
         """ Resolve predicates here.
@@ -86,13 +87,18 @@ class PredicatedHandler:
                 # All predicates match
                 log.debug('{} {} will be handled by {}'.format(request.method, request.path_qs, view_item.view))
                 handler = view_item.view
+                context = {}
+                rules = self.rules
+                for k, v in request.match_info.items():
+                    if k in rules:
+                        context[k] = self.rules[k].match(v)
                 if view_item.attr:
                     # handler is a coroutine method of a class
-                    handler = getattr(handler(request), view_item.attr)
+                    handler = getattr(handler(request, context), view_item.attr)
                     response = await handler()
                 else:
                     # handler is a simple coroutine
-                    response = await handler(request)
+                    response = await handler(request, context)
 
                 if isinstance(response, Response):
                     # Do not process standard responses
