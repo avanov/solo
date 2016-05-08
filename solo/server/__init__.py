@@ -45,7 +45,10 @@ async def init_webapp(loop: asyncio.AbstractEventLoop,
 
     # Setup sessions middleware
     # -------------------------
-    aiohttp_session.setup(webapp, RedisStorage(memstore_pool))
+    aiohttp_session.setup(webapp, RedisStorage(memstore_pool,
+                                               cookie_name=config['session']['cookie_name'],
+                                               secure=config['session']['cookie_secure'],
+                                               httponly=config['session']['cookie_httponly']))
 
     # Finalize setup
     # --------------
