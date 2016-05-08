@@ -22,6 +22,7 @@ class SumVariant:
         self.variant_of = variant_of
         self.name = name
         self.value = value
+        self.categories = {}
 
     def is_primitive_type(self):
         if isinstance(self.value, str):
@@ -75,6 +76,8 @@ class SumVariant:
                             )
                         )
                 case_implementations[self.name] = obj
+                # Make the category accessible from SumVariant instance as well
+                self.categories[category] = obj
                 # Re-calculate matches
                 self.variant_of.__sum_meta__.matches = {
                     variant: {case: impl[variant] for case, impl in categories_dict.items()}
@@ -85,6 +88,12 @@ class SumVariant:
             info = self.venusian.attach(wrapped, callback, category='solo')
             return wrapped
         return wrapper
+
+    def __getitem__(self, item: str) -> Any:
+        return self.categories[item]
+
+    def __repr__(self):
+        return 'SumVariant(type={}.{}, name={}, value={})'.format(self.variant_of.__module__, self.variant_of.__name__, self.name, self.value)
 
 
 class SumTypeMetaData:
@@ -146,7 +155,7 @@ class SumType(metaclass=SumTypeMetaclass):
         return set(cls.__sum_meta__.values.keys())
 
     @classmethod
-    def match(cls, value):
+    def match(cls, value) -> SumVariant:
         """
         :rtype: dict or :class:`types.FunctionType`
         """
@@ -155,12 +164,12 @@ class SumType(metaclass=SumTypeMetaclass):
             if variant_type.is_primitive_type():
                 # We compare primitive types with equality matching
                 if value == variant_type.value:
-                    variant = variant_name
+                    variant = variant_type
                     break
             else:
                 # We compare non-primitive types with type checking
                 if isinstance(value, variant_type.value):
-                    variant = variant_name
+                    variant = variant_type
                     break
 
         if variant is None:
@@ -173,7 +182,7 @@ class SumType(metaclass=SumTypeMetaclass):
                 )
             )
 
-        return cls.__sum_meta__.matches[variant]
+        return variant
 
     @classmethod
     def inline_match(cls, **inline_cases):
