@@ -19,16 +19,20 @@ class GithubProvider(OAuth2Provider):
                                              access_token_url='https://github.com/login/oauth/access_token',
                                              profile_url='https://api.github.com/user')
 
-    async def authorize(self, request: web.Request) -> web.Response:
-        session = get_session(request)
+    async def authorize(self, request: web.Request) -> str:
+        """ Init internal authorization state and return necessary data for performing authorization.
+
+        :return: URL to redirect to in order to initialize authorization with a 3rd-party service
+        """
+        session = await get_session(request)
         session['oauth.state'] = state = uuid.uuid4().hex
         url = self.get_authorization_payload(state=state)
-        return web.HTTPFound(location=url)
+        return url
 
     async def callback(self, request: web.Request) -> ProfileIntegration:
         """ Process github redirect
         """
-        session = get_session(request)
+        session = await get_session(request)
         session_state = session.pop('oauth.state', None)
         request_state = request.GET.get('state')
         if not session_state or session_state != request_state:

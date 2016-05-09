@@ -4,7 +4,7 @@ from typing import Dict, Any
 from solo import http_defaults, http_endpoint
 
 
-@http_defaults(route_name='/login/{provider}')
+@http_defaults(route_name='/login/{provider}', renderer='json')
 class AuthenticationHandler:
 
     def __init__(self, request: web.Request, context: Dict[str, Any]):
@@ -13,8 +13,9 @@ class AuthenticationHandler:
 
     @http_endpoint(request_method='GET')
     async def init_authorization(self) -> web.Response:
-        provider = self.context['provider']['auth_provider_impl']()
-        return (await provider.authorize())
+        provider = self.request.app['solo.apps.auth'][self.context['provider'].value]
+        url = await provider.authorize(self.request)
+        return {'redirect': url}
 
 
 @http_defaults(route_name='/login/{provider}/callback')
@@ -26,6 +27,6 @@ class AuthenticationCallbackHandler:
 
     @http_endpoint(request_method='GET')
     async def process_callback(self) -> web.Response:
-        provider = self.context['provider']['auth_provider_impl']()
+        provider = self.request.app['solo.apps.auth'][self.context['provider'].value]
         integration = await provider.callback()
         return {}

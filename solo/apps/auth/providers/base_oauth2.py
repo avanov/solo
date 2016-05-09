@@ -35,6 +35,7 @@ class OAuth2Provider:
         self.client_id = client_id
         self.client_secret = client_secret
         self.scope = scope
+        self.scope_str = ','.join(scope)
         self.redirect_uri = redirect_uri
         self.authorize_url = authorize_url
         self.access_token_url = access_token_url
@@ -48,7 +49,7 @@ class OAuth2Provider:
 
     def get_authorization_payload(self, state):
         return '{}?{}'.format(self.authorize_url, urlencode(dict(
-            scope=self.scope,
+            scope=self.scope_str,
             client_id=self.client_id,
             redirect_uri=self.redirect_uri,
             state=state
