@@ -25,13 +25,14 @@ async def init_webapp(loop: asyncio.AbstractEventLoop,
 
     apps = config['apps']
     for app_name, app_options in apps.items():
+        log.debug("------- Setting up {} -------".format(app_name))
         configurator.include(app_name, app_options['url_prefix'])
         configurator.scan(package=app_name, ignore=['.__pycache__'])
+        webapp = register_routes(app_name, webapp, configurator)
         for setup_step in app_options.get('setup', []):
             directive, kw = list(setup_step.items())[0]
             getattr(configurator, directive)(**kw)
 
-    webapp = register_routes(webapp, configurator)
 
     # Setup database connection pool
     # ------------------------------
@@ -56,21 +57,21 @@ async def init_webapp(loop: asyncio.AbstractEventLoop,
     return webapp
 
 
-def register_routes(webapp: web.Application, configurator: Configurator) -> web.Application:
+def register_routes(namespace: str, webapp: web.Application, configurator: Configurator) -> web.Application:
     # app.router.add_route("GET", "/probabilities/{attrs:.+}",
     #                     probabilities.handlers.handler)
     # Setup routes
     # ------------
-    for app_namespace, application_routes in configurator.router.routes.items():
-        for route in application_routes.values():  # type: Route
-            handler = PredicatedHandler(route.rules, route.view_metas)
-            guarded_route_pattern = complete_route_pattern(route.pattern, route.rules)
-            verbose_route_name = route.pattern.replace('/', '_').replace('{', '_').replace('}', '_')
-            log.debug('Binding route {} to the handler named {} in the namespace {}.'.format(
-                guarded_route_pattern, route.name, app_namespace
-            ))
-            webapp.router.add_route(method='*',
-                                    path=guarded_route_pattern,
-                                    name=verbose_route_name,
-                                    handler=handler)
+    application_routes = configurator.router.routes[namespace]
+    for route in application_routes.values():  # type: Route
+        handler = PredicatedHandler(route.rules, route.view_metas)
+        guarded_route_pattern = complete_route_pattern(route.pattern, route.rules)
+        verbose_route_name = route.pattern.replace('/', '_').replace('{', '_').replace('}', '_')
+        log.debug('Binding route {} to the handler named {} in the namespace {}.'.format(
+            guarded_route_pattern, route.name, namespace
+        ))
+        webapp.router.add_route(method='*',
+                                path=guarded_route_pattern,
+                                name=verbose_route_name,
+                                handler=handler)
     return webapp
