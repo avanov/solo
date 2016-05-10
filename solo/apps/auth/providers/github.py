@@ -1,4 +1,5 @@
-from typing import List
+import logging
+from typing import List, Optional
 import uuid
 
 from aiohttp import web
@@ -10,9 +11,16 @@ from .base_oauth2 import OAuth2Provider, ThirdPartyProfile, ProfileIntegration
 from ..exceptions import CSRFError, AuthorizationError, ProviderServiceError
 
 
+log = logging.getLogger(__name__)
+
+
 @AuthProvider.GITHUB(category='auth_provider_impl')
 class GithubProvider(OAuth2Provider):
-    def __init__(self, client_id: str, client_secret: str, scope: List[str], redirect_uri: str):
+    def __init__(self, client_id: str, client_secret: str, scope: List[str], redirect_uri: Optional[str] = None):
+        """
+        :param redirect_uri: The redirect_uri parameter is optional. If left out, GitHub will redirect users to the
+                             callback URL configured in the OAuth Application settings.
+        """
         super(GithubProvider, self).__init__(client_id, client_secret, scope,
                                              redirect_uri=redirect_uri,
                                              authorize_url='https://github.com/login/oauth/authorize',
@@ -45,12 +53,12 @@ class GithubProvider(OAuth2Provider):
         code = request.GET.get('code')
         if not code:
             reason = request.GET.get('error')
-            raise AuthorizationError("Authorization code was not provided",
+            raise AuthorizationError("Authorization code was not provided. Reason: {}".format(reason),
                                      reason=reason, provider=self)
 
         # Now retrieve the access token with the code
-        access_url = self.get_access_token_payload(session_state, code),
-        with ClientSession(headers={'Accept': 'application/vnd.github.v3.raw+json'}) as http:
+        access_url = self.get_access_token_payload(session_state, code)
+        with ClientSession(headers={'Accept': 'application/json'}) as http:
             async with http.get(access_url) as r:
                 if r.status != 200:
                     content = await r.text()

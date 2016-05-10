@@ -15,7 +15,7 @@ class AuthenticationHandler:
     async def init_authorization(self) -> web.Response:
         provider = self.request.app['solo.apps.auth'][self.context['provider'].value]
         url = await provider.authorize(self.request)
-        return {'redirect': url}
+        return web.HTTPFound(location=url)
 
 
 @http_defaults(route_name='/login/{provider}/callback')
@@ -28,5 +28,9 @@ class AuthenticationCallbackHandler:
     @http_endpoint(request_method='GET')
     async def process_callback(self) -> web.Response:
         provider = self.request.app['solo.apps.auth'][self.context['provider'].value]
-        integration = await provider.callback()
-        return {}
+        integration = await provider.callback(self.request)
+        return {
+            'id': integration.profile.id,
+            'username': integration.profile.username,
+            'email': integration.profile.email
+        }

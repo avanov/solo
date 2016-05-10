@@ -55,7 +55,7 @@ class OAuth2Provider:
             state=state
         )))
 
-    def get_access_token_payload(self, state, code):
+    def get_access_token_payload(self, state: str, code: str) -> str:
         return '{}?{}'.format(self.access_token_url, urlencode(dict(
             client_id=self.client_id,
             client_secret=self.client_secret,
@@ -64,7 +64,7 @@ class OAuth2Provider:
             state=state
         )))
 
-    def get_profile_payload(self, access_token):
+    def get_profile_payload(self, access_token: str) -> str:
         return '{}?{}'.format(self.profile_url, urlencode(dict(
             access_token=access_token
         )))
