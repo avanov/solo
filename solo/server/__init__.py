@@ -21,7 +21,7 @@ async def init_webapp(loop: asyncio.AbstractEventLoop,
     webapp = web.Application(loop=loop,
                              debug=config['debug'])
 
-    configurator = Configurator(registry={'config': config})
+    configurator = Configurator(webapp, registry={'config': config})
 
     apps = config['apps']
     for app_name, app_options in apps.items():
@@ -66,12 +66,11 @@ def register_routes(namespace: str, webapp: web.Application, configurator: Confi
     for route in application_routes.values():  # type: Route
         handler = PredicatedHandler(route.rules, route.view_metas)
         guarded_route_pattern = complete_route_pattern(route.pattern, route.rules)
-        verbose_route_name = route.pattern.replace('/', '_').replace('{', '_').replace('}', '_')
         log.debug('Binding route {} to the handler named {} in the namespace {}.'.format(
             guarded_route_pattern, route.name, namespace
         ))
         webapp.router.add_route(method='*',
                                 path=guarded_route_pattern,
-                                name=verbose_route_name,
+                                name=route.aiohttp_name,
                                 handler=handler)
     return webapp
