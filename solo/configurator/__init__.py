@@ -7,6 +7,7 @@ import pkgutil
 from typing import Optional
 from types import ModuleType
 
+from aiohttp.web import Application
 import ramlfications as raml
 import venusian
 
@@ -33,6 +34,7 @@ class Configurator:
     inspect = inspect
 
     def __init__(self,
+                 app: Application,
                  route_prefix=None,
                  registry=None,
                  router_configurator=RoutesConfigurator,
@@ -44,10 +46,11 @@ class Configurator:
         if registry is None:
             registry = {}
 
-        self.router = router_configurator(route_prefix)
-        self.views = views_configurator()
-        self.rendering = rendering_configurator()
-        self.sums = sum_types_configurator()
+        self.app = app
+        self.router = router_configurator(app, route_prefix)
+        self.views = views_configurator(app)
+        self.rendering = rendering_configurator(app)
+        self.sums = sum_types_configurator(app)
         self._directives = {}
         self.registry = registry
         self.setup_configurator()
@@ -88,9 +91,9 @@ class Configurator:
         self.router.change_namespace(old_namespace)
         self.router.change_route_prefix(old_route_prefix)
 
-    def include_api_specs(self, package: str, path: str):
-        log.debug('Including API specs: {}:{}'.format(package, path))
-        data = pkgutil.get_data(package, path)  # type: bytes
+    def include_api_specs(self, pkg_name: str, path: str):
+        log.debug('Including API specs: {}:{}'.format(pkg_name, path))
+        data = pkgutil.get_data(pkg_name, path)  # type: bytes
         data = data.decode('utf-8')
         data = raml.loads(data)
         raml_config = raml.setup_config(None)

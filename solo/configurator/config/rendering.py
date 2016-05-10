@@ -1,6 +1,6 @@
 import json
 
-from aiohttp.web import Response
+from aiohttp.web import Response, Application
 
 
 json_encode = json.dumps
@@ -36,7 +36,8 @@ BUILTIN_RENDERERS = {
 
 class RenderingConfigurator:
 
-    def __init__(self):
+    def __init__(self, app: Application):
+        self.app = app
         self.renderers = {}
 
     def add_renderer(self, name, factory):

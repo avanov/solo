@@ -1,6 +1,8 @@
 import inspect
 from typing import Optional
 
+from aiohttp.web import Application
+
 from . import predicates as default_predicates
 from ..util import viewdefaults
 from .routes import ViewMeta
@@ -10,7 +12,8 @@ from ..exceptions import ConfigurationError
 
 class ViewsConfigurator:
 
-    def __init__(self):
+    def __init__(self, app: Application):
+        self.app = app
         self.predicates = PredicateList()
 
     @viewdefaults

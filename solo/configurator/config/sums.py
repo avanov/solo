@@ -3,6 +3,8 @@ import venusian
 from typing import Dict, Any
 from collections import OrderedDict
 
+from aiohttp.web import Application
+
 from ..exceptions import ConfigurationError
 
 
@@ -235,7 +237,8 @@ class SumType(metaclass=SumTypeMetaclass):
 
 class SumTypesConfigurator:
 
-    def __init__(self):
+    def __init__(self, app: Application):
+        self.app = app
         self.sum_types = OrderedDict()  # type: Dict[str, SumTypeMetaData]
 
     def update_sum_type_registry(self, sum_type_meta: SumTypeMetaData):
