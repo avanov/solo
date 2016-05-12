@@ -1,9 +1,13 @@
 import asyncio
+import logging
 
 from solo.server import init_webapp
 from solo.cli import parse_app_config
 
 from sqlalchemy import pool, create_engine
+
+
+log = logging.getLogger(__name__)
 
 
 def _config_from_alembic(alembic_config):
@@ -17,6 +21,17 @@ def collect_metadata(alembic_config):
     solo_config = _config_from_alembic(alembic_config)
     loop.set_debug(enabled=solo_config['debug'])
     app = loop.run_until_complete(init_webapp(loop, solo_config))
+    # TODO: implement as signal handlers
+    # Close database pool (could be implemented better with signals)
+    if hasattr(app, 'dbengine'):
+        log.debug('Closing database connections...')
+        app.dbengine.terminate()
+        loop.run_until_complete(app.dbengine.wait_closed())
+
+    # Close memstore pool
+    if hasattr(app, 'memstore'):
+        log.debug('Closing memory store connections...')
+        loop.run_until_complete(app.memstore.clear())
     return metadata
 
 
