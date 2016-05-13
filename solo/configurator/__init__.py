@@ -29,6 +29,46 @@ __all__ = ['http_endpoint', 'http_defaults', 'Configurator']
 log = logging.getLogger(__name__)
 
 
+class ApplicationManager:
+    def __init__(self, app: Application):
+        self.app = app
+        self.handler = app.make_handler()
+        config = app['config']
+        self._server_prototype = app.loop.create_server(self.handler, config['server']['host'], config['server']['port'])
+        self.server = None
+
+    def create_server(self):
+        log.debug('Creating a new web server...')
+        self.server = self.app.loop.run_until_complete(self._server_prototype)
+
+    def __enter__(self):
+        log.debug('Entering application context...')
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        log.debug('Exiting application context...')
+        if hasattr(self.app, 'dbengine'):
+            log.debug('Closing database connections...')
+            self.app.dbengine.terminate()
+            self.app.loop.run_until_complete(self.app.dbengine.wait_closed())
+
+        # Close memstore pool
+        if hasattr(self.app, 'memstore'):
+            log.debug('Closing memory store connections...')
+            self.app.loop.run_until_complete(self.app.memstore.clear())
+
+
+        if self.server:
+            log.debug('Stopping server...')
+            self.server.close()
+            self.app.loop.run_until_complete(self.server.wait_closed())
+
+        log.debug('Shutting down the application...')
+        self.app.loop.run_until_complete(self.app.shutdown())
+        self.app.loop.run_until_complete(self.handler.finish_connections(60.0))
+        self.app.loop.run_until_complete(self.app.cleanup())
+
+
 class Configurator:
     venusian = venusian
     inspect = inspect
@@ -159,3 +199,7 @@ class Configurator:
         # http://stackoverflow.com/a/1015405/209039
         m = c.__get__(self, self.__class__)
         return m
+
+    def final_application(self) -> ApplicationManager:
+        self.app.update(self.registry)
+        return ApplicationManager(self.app)

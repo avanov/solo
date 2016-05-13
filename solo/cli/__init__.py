@@ -42,38 +42,20 @@ def run_cmd(args: List[str]):
     config = parse_app_config(args)
 
     logging.config.dictConfig(config['logging'])
-    log = logging.getLogger('assignment')
+    log = logging.getLogger('solo')
 
     loop = asyncio.get_event_loop()
     loop.set_debug(enabled=config['debug'])
 
-    app = loop.run_until_complete(init_webapp(loop, config))
-    handler = app.make_handler()
-    f = loop.create_server(handler, config['server']['host'], config['server']['port'])
-    srv = loop.run_until_complete(f)
-    log.debug('Serving on {}'.format(srv.sockets[0].getsockname()))
-    try:
-        loop.run_forever()
-    except KeyboardInterrupt:
-        log.debug('[SIGINT] Shutting down the server gracefully...')
-    finally:
-        # Close database pool (could be implemented better with signals)
-        if hasattr(app, 'dbengine'):
-            log.debug('Closing database connections...')
-            app.dbengine.terminate()
-            loop.run_until_complete(app.dbengine.wait_closed())
-
-        # Close memstore pool
-        if hasattr(app, 'memstore'):
-            log.debug('Closing memory store connections...')
-            loop.run_until_complete(app.memstore.clear())
-
-        # all the rest
-        srv.close()
-        loop.run_until_complete(srv.wait_closed())
-        loop.run_until_complete(app.shutdown())
-        loop.run_until_complete(handler.finish_connections(60.0))
-        loop.run_until_complete(app.cleanup())
+    with loop.run_until_complete(init_webapp(loop, config)) as app:
+        # handler = app.make_handler()
+        #f = loop.create_server(handler, config['server']['host'], config['server']['port'])
+        app.create_server()
+        log.debug('Serving on {}'.format(app.server.sockets[0].getsockname()))
+        try:
+            loop.run_forever()
+        except KeyboardInterrupt:
+            log.debug('[SIGINT] A command to shut down the server has been received...')
 
     loop.close()
     log.debug('Done.')

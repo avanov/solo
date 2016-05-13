@@ -51,10 +51,7 @@ async def init_webapp(loop: asyncio.AbstractEventLoop,
                                                secure=config['session']['cookie_secure'],
                                                httponly=config['session']['cookie_httponly']))
 
-    # Finalize setup
-    # --------------
-    webapp.update(configurator.registry)
-    return webapp
+    return configurator.final_application()
 
 
 def register_routes(namespace: str, webapp: web.Application, configurator: Configurator) -> web.Application:

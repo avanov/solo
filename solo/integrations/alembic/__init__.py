@@ -20,18 +20,8 @@ def collect_metadata(alembic_config):
     loop = asyncio.get_event_loop()
     solo_config = _config_from_alembic(alembic_config)
     loop.set_debug(enabled=solo_config['debug'])
-    app = loop.run_until_complete(init_webapp(loop, solo_config))
-    # TODO: implement as signal handlers
-    # Close database pool (could be implemented better with signals)
-    if hasattr(app, 'dbengine'):
-        log.debug('Closing database connections...')
-        app.dbengine.terminate()
-        loop.run_until_complete(app.dbengine.wait_closed())
-
-    # Close memstore pool
-    if hasattr(app, 'memstore'):
-        log.debug('Closing memory store connections...')
-        loop.run_until_complete(app.memstore.clear())
+    with loop.run_until_complete(init_webapp(loop, solo_config)) as app:
+        pass
     return metadata
 
 
