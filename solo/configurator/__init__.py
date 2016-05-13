@@ -32,14 +32,15 @@ log = logging.getLogger(__name__)
 class ApplicationManager:
     def __init__(self, app: Application):
         self.app = app
+        self.loop = app.loop
         self.handler = app.make_handler()
-        config = app['config']
-        self._server_prototype = app.loop.create_server(self.handler, config['server']['host'], config['server']['port'])
         self.server = None
 
     def create_server(self):
         log.debug('Creating a new web server...')
-        self.server = self.app.loop.run_until_complete(self._server_prototype)
+        config = self.app['config']
+        f = self.loop.create_server(self.handler, config['server']['host'], config['server']['port'])
+        self.server = self.loop.run_until_complete(f)
 
     def __enter__(self):
         log.debug('Entering application context...')
@@ -50,23 +51,23 @@ class ApplicationManager:
         if hasattr(self.app, 'dbengine'):
             log.debug('Closing database connections...')
             self.app.dbengine.terminate()
-            self.app.loop.run_until_complete(self.app.dbengine.wait_closed())
+            self.loop.run_until_complete(self.app.dbengine.wait_closed())
 
         # Close memstore pool
         if hasattr(self.app, 'memstore'):
             log.debug('Closing memory store connections...')
-            self.app.loop.run_until_complete(self.app.memstore.clear())
+            self.loop.run_until_complete(self.app.memstore.clear())
 
 
         if self.server:
             log.debug('Stopping server...')
             self.server.close()
-            self.app.loop.run_until_complete(self.server.wait_closed())
+            self.loop.run_until_complete(self.server.wait_closed())
 
         log.debug('Shutting down the application...')
-        self.app.loop.run_until_complete(self.app.shutdown())
-        self.app.loop.run_until_complete(self.handler.finish_connections(60.0))
-        self.app.loop.run_until_complete(self.app.cleanup())
+        self.loop.run_until_complete(self.app.shutdown())
+        self.loop.run_until_complete(self.handler.finish_connections(60.0))
+        self.loop.run_until_complete(self.app.cleanup())
 
 
 class Configurator:

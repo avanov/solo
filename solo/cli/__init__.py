@@ -48,8 +48,6 @@ def run_cmd(args: List[str]):
     loop.set_debug(enabled=config['debug'])
 
     with loop.run_until_complete(init_webapp(loop, config)) as app:
-        # handler = app.make_handler()
-        #f = loop.create_server(handler, config['server']['host'], config['server']['port'])
         app.create_server()
         log.debug('Serving on {}'.format(app.server.sockets[0].getsockname()))
         try:
