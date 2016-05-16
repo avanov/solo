@@ -1,5 +1,5 @@
 import json
-from typing import Iterable, Dict, Any
+from typing import Iterable, Dict, Any, Set, Optional
 
 import sqlalchemy as sa
 from sqlalchemy.ext.declarative import declarative_base
@@ -18,9 +18,11 @@ class _BaseModel:
     #    for k, v in kwargs.items():
     #        setattr(self, k, v)
 
-    def to_dict(self, *fields: Iterable[str]) -> Dict[str, Any]:
+    def as_dict(self, *fields: Iterable[str], exclude: Optional[Set[str]] = None) -> Dict[str, Any]:
+        if exclude is None:
+            exclude = set()
         if not fields:
-            fields = self.FIELDS
+            fields = [k for k in self.__table__.c.keys() if k not in exclude]
 
         rv = {}
         out_modifiers = self.OUT_MODIFIERS

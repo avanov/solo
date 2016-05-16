@@ -79,7 +79,7 @@ class GithubProvider(OAuth2Provider):
                     else:
                         profile_data = await profile_r.json()
 
-                    profile = ThirdPartyProfile(id=profile_data['id'],
+                    profile = ThirdPartyProfile(id=str(profile_data['id']),
                                                 username=profile_data['login'],
                                                 # email might be non-verified
                                                 email=profile_data.get('email'))
