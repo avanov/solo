@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 
 def _config_from_alembic(alembic_config):
-    return parse_app_config([alembic_config.get_section_option('solo', 'config')])
+    return parse_app_config(alembic_config.get_section_option('solo', 'config'))
 
 
 def collect_metadata(alembic_config):

@@ -184,7 +184,7 @@ def loop(request):
 @pytest.yield_fixture
 def create_server(loop, unused_port):
     app = handler = srv = None
-    config = parse_app_config(['./config.yml'])  # TODO: move path to outer scope
+    config = parse_app_config('./config.yml')  # TODO: move path to outer scope
 
     async def create(*, debug=False, ssl_ctx=None, proto='http'):
         nonlocal app, handler, srv, config

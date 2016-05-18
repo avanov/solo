@@ -17,8 +17,7 @@ from solo.server import init_webapp
 def run_cmd(args: argparse.Namespace):
     """ Run project instance.
     """
-    with Path(args.config).open() as f:
-        config = yaml.load(f.read())
+    config = parse_app_config(args.config)
 
     logging.config.dictConfig(config['logging'])
     log = logging.getLogger('solo')
@@ -76,3 +75,8 @@ def main(args=None, stdout=None):
 INIT_CONFIG = """---
 # Solo App Config
 """
+
+def parse_app_config(path: str) -> Dict[str, Any]:
+    with Path(path).open() as f:
+        config = yaml.load(f.read())
+        return config
