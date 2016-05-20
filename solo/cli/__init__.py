@@ -14,10 +14,10 @@ from solo.server import init_webapp
 from .util import parse_app_config
 
 
-def run_cmd(args: argparse.Namespace, unknown: List[str]):
+def run_cmd(args: argparse.Namespace):
     """ Run project instance.
     """
-    config = parse_app_config(args.config)
+    config = parse_app_config(args.solocfg)
 
     logging.config.dictConfig(config['logging'])
     log = logging.getLogger('solo')
