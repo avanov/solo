@@ -2,9 +2,15 @@ import asyncio
 import logging
 
 from solo.server import init_webapp
-from solo.cli import parse_app_config
+from solo.cli.util import parse_app_config
 
 from sqlalchemy import pool, create_engine
+
+from .config import alembic_config_from_solo
+from .cli import integrate_alembic_cli
+
+
+__all__ = ['alembic_config_from_solo', 'integrate_alembic_cli']
 
 
 log = logging.getLogger(__name__)

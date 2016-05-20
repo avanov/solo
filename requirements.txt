@@ -5,6 +5,7 @@ hiredis==0.2.0
 aioredis==0.2.6
 psycopg2==2.6.1
 sqlalchemy==1.0.12
+alembic==0.8.6
 pyyaml==3.11
 ramlfications==0.1.9
 venusian==1.0

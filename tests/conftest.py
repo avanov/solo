@@ -18,7 +18,7 @@ import warnings
 
 from aiohttp import web
 
-from solo.cli import parse_app_config
+from solo.cli.util import parse_app_config
 from solo.server import init_webapp
 
 

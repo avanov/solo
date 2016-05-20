@@ -5,16 +5,16 @@ import asyncio
 import logging
 import logging.config
 import sys
-from typing import Any, List, Dict
-from pathlib import Path
+from typing import List
 
 from pkg_resources import get_distribution
-import yaml
 
+from solo.integrations.alembic import integrate_alembic_cli
 from solo.server import init_webapp
+from .util import parse_app_config
 
 
-def run_cmd(args: argparse.Namespace):
+def run_cmd(args: argparse.Namespace, unknown: List[str]):
     """ Run project instance.
     """
     config = parse_app_config(args.config)
@@ -38,12 +38,8 @@ def run_cmd(args: argparse.Namespace):
     sys.exit(0)
 
 
-def db_cmd(args: argparse.Namespace):
-    pass
-
-
 def main(args=None, stdout=None):
-    parser = argparse.ArgumentParser(description='Manage solo projects.')
+    parser = argparse.ArgumentParser(description='Manage Solo projects.')
     parser.add_argument('-V', '--version', action='version',
                         version='Solo {}'.format(get_distribution("solo").version))
     subparsers = parser.add_subparsers(title='sub-commands',
@@ -53,15 +49,15 @@ def main(args=None, stdout=None):
     # $ solo run <config>
     # ---------------------------
     run = subparsers.add_parser('run', help='Run solo application')
-    run.add_argument("config", help="path to a YAML config.")
     run.set_defaults(func=run_cmd)
 
     # $ solo db [args]
     # ---------------------------
-    db = subparsers.add_parser('db', help='Database commands integrated with Alembic CLI')
-    db.add_argument('alembic_cmd', type=str, nargs='*',
-                    help='alembic-specific command')
-    db.set_defaults(func=db_cmd)
+    integrate_alembic_cli(subparsers)
+
+    # Common arguments
+    # ----------------
+    _add_common_arguments(subparsers)
 
     # Parse
     # ---------------------------
@@ -71,12 +67,22 @@ def main(args=None, stdout=None):
     args.func(args)
 
 
-
-INIT_CONFIG = """---
-# Solo App Config
-"""
-
-def parse_app_config(path: str) -> Dict[str, Any]:
-    with Path(path).open() as f:
-        config = yaml.load(f.read())
-        return config
+def _add_common_arguments(subparsers: argparse._SubParsersAction):
+    """ Recursively search for innermost parsers and add common arguments to their arguments.
+    The goal is to allow common arguments be specified after all subcommand-specific arguments,
+    i.e. to be able to invoke
+    $ solo db revision [--solocfg SOLOCFG]
+    instead of
+    $ solo [--solocfg SOLOCFG] db revision
+    without having to manually specify parent parsers as described at
+    # https://docs.python.org/3/library/argparse.html#parents
+    """
+    for sp in subparsers.choices.values():  # type: argparse.ArgumentParser
+        if sp._subparsers:
+            for action in sp._subparsers._actions:
+                if not isinstance(action, argparse._SubParsersAction):
+                    continue
+                # Traverse to the inner subparser
+                _add_common_arguments(action)
+        else:
+            sp.add_argument("--solocfg", default='solocfg.yml', help="path to a YAML config (default ./solocfg.yml).")
