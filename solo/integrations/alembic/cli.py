@@ -141,7 +141,8 @@ def integrate_alembic_cli(parent_cli: argparse._SubParsersAction, prefix: str = 
     # Revision
     # http://alembic.readthedocs.io/en/latest/api/commands.html#alembic.command.revision
     # ----------------------------------------------------------------------------------
-    revision = subparsers.add_parser('revision', help='integrates "alembic revision" command')
+    revision = subparsers.add_parser('revision', help='Integrates "alembic revision" command. '
+                                                      'Creates a new revision file.')
     for opt in ('message', 'autogenerate', 'sql', 'head', 'splice', 'branch_label', 'rev_id', 'depends_on'):
         *pos_opts, kv_opts = ALEMBIC_KV_OPTS[opt]
         revision.add_argument(*pos_opts, **kv_opts)
@@ -151,7 +152,8 @@ def integrate_alembic_cli(parent_cli: argparse._SubParsersAction, prefix: str = 
     # Upgrade
     # http://alembic.readthedocs.io/en/latest/api/commands.html#alembic.command.upgrade
     # ----------------------------------------------------------------------------------
-    upgrade = subparsers.add_parser('upgrade', help='integrates "alembic upgrade" command')
+    upgrade = subparsers.add_parser('upgrade', help='Integrates "alembic upgrade" command. '
+                                                    'Upgrades to a later version.')
     for opt in ('sql', 'tag'):
         *pos_opts, kw_opts = ALEMBIC_KV_OPTS[opt]
         upgrade.add_argument(*pos_opts, **kw_opts)
@@ -161,6 +163,17 @@ def integrate_alembic_cli(parent_cli: argparse._SubParsersAction, prefix: str = 
         upgrade.add_argument(opt, help=opt_help)
 
     upgrade.set_defaults(func=upgrade_cmd)
+
+    # Heads
+    # http://alembic.readthedocs.io/en/latest/api/commands.html#alembic.command.heads
+    # ----------------------------------------------------------------------------------
+    heads = subparsers.add_parser('heads', help='Integrates "alembic heads" command. '
+                                                'Shows current available heads in the script directory')
+    for opt in ('verbose', 'resolve_dependencies'):
+        *pos_opts, kw_opts = ALEMBIC_KV_OPTS[opt]
+        heads.add_argument(*pos_opts, **kw_opts)
+
+    heads.set_defaults(func=heads_cmd)
 
 
 def upgrade_cmd(args, solo_cfg: Dict[str, Any]):
@@ -181,3 +194,7 @@ def revision_cmd(args, solo_cfg: Dict[str, Any]):
                          rev_id=args.rev_id,
                          depends_on=args.depends_on)
 
+
+def heads_cmd(args, solo_cfg: Dict[str, Any]):
+    config = alembic_config_from_solo(solo_cfg)
+    alembic_cmd.heads(config, verbose=args.verbose, resolve_dependencies=args.resolve_dependencies)
