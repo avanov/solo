@@ -1,11 +1,20 @@
+import asyncio
+from typing import Dict, Any
 from alembic.config import Config
+from solo import init_webapp
 
 
-def alembic_config_from_solo(solo_cfg):
+def alembic_config_from_solo(solo_cfg: Dict[str, Any]) -> Config:
+    """ Generates valid Alembic configuration from a given Solo configuration.
+    The return value can be passed to `alembic commands API <http://alembic.readthedocs.io/en/latest/api/commands.html>`_.
+
+    :param solo_cfg: Solo configuration
+    :return: Alembic configuration
+    """
     alembic_cfg = Config(ini_section='main')
 
     # path to migration scripts
-    alembic_cfg.set_main_option("script_location", ".alembic")
+    alembic_cfg.set_main_option("script_location", "solo.integrations:alembic")
 
     # template used to generate migration files
     alembic_cfg.set_main_option("file_template", "%%(rev)s_%%(slug)s")
@@ -32,6 +41,20 @@ def alembic_config_from_solo(solo_cfg):
     # are written from script.py.mako
     alembic_cfg.set_main_option("output_encoding", "utf-8")
 
-    alembic_cfg.set_main_option("sqlalchemy.url", "driver://user:pass@localhost/dbname")
+    dbconf = solo_cfg['postgresql']
+    alembic_cfg.set_main_option('sqlalchemy.url',
+                                'postgresql+psycopg2://{user}:{password}@{host}:{port}/{dbname}'.format(**dbconf))
+
+    alembic_cfg.attributes['target_metadata'] = collect_metadata(solo_cfg)
 
     return alembic_cfg
+
+
+def collect_metadata(solo_cfg: Dict[str, Any]):
+    from solo.server.model import metadata
+
+    loop = asyncio.get_event_loop()
+    loop.set_debug(enabled=solo_cfg['debug'])
+    with loop.run_until_complete(init_webapp(loop, solo_cfg)) as app:
+        pass
+    return metadata

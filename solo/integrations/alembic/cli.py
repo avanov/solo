@@ -1,5 +1,5 @@
 import argparse
-from typing import List
+from typing import Dict, Any
 
 from alembic import command as alembic_cmd
 from solo.cli.util import parse_app_config
@@ -163,14 +163,12 @@ def integrate_alembic_cli(parent_cli: argparse._SubParsersAction, prefix: str = 
     upgrade.set_defaults(func=upgrade_cmd)
 
 
-def upgrade_cmd(args):
-    solo_cfg = parse_app_config(args.solocfg)
+def upgrade_cmd(args, solo_cfg: Dict[str, Any]):
     config = alembic_config_from_solo(solo_cfg)
     alembic_cmd.upgrade(config, revision=args.revision, sql=args.sql, tag=args.tag)
 
 
-def revision_cmd(args):
-    solo_cfg = parse_app_config(args.solocfg)
+def revision_cmd(args, solo_cfg: Dict[str, Any]):
     config = alembic_config_from_solo(solo_cfg)
     alembic_cmd.revision(config,
                          message=args.message,

@@ -5,7 +5,7 @@ import asyncio
 import logging
 import logging.config
 import sys
-from typing import List
+from typing import Dict, Any
 
 from pkg_resources import get_distribution
 
@@ -14,18 +14,14 @@ from solo.server import init_webapp
 from .util import parse_app_config
 
 
-def run_cmd(args: argparse.Namespace):
+def run_cmd(args: argparse.Namespace, solo_cfg: Dict[str, Any]):
     """ Run project instance.
     """
-    config = parse_app_config(args.solocfg)
-
-    logging.config.dictConfig(config['logging'])
     log = logging.getLogger('solo')
-
     loop = asyncio.get_event_loop()
-    loop.set_debug(enabled=config['debug'])
+    loop.set_debug(enabled=solo_cfg['debug'])
 
-    with loop.run_until_complete(init_webapp(loop, config)) as app:
+    with loop.run_until_complete(init_webapp(loop, solo_cfg)) as app:
         app.create_server()
         log.debug('Serving on {}'.format(app.server.sockets[0].getsockname()))
         try:
@@ -59,12 +55,14 @@ def main(args=None, stdout=None):
     # ----------------
     _add_common_arguments(subparsers)
 
-    # Parse
+    # Parse and run
     # ---------------------------
     if args is None:
         args = sys.argv[1:]
     args = parser.parse_args(args)
-    args.func(args)
+    solo_cfg = parse_app_config(args.solocfg)
+    logging.config.dictConfig(solo_cfg['logging'])
+    args.func(args, solo_cfg)
 
 
 def _add_common_arguments(subparsers: argparse._SubParsersAction):
