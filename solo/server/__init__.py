@@ -27,7 +27,7 @@ async def init_webapp(loop: asyncio.AbstractEventLoop,
     for app_name, app_options in apps.items():
         log.debug("------- Setting up {} -------".format(app_name))
         configurator.include(app_name, app_options['url_prefix'])
-        configurator.scan(package=app_name, ignore=['.__pycache__'])
+        configurator.scan(package=app_name, ignore=['.__pycache__', '{}.migrations'.format(app_name)])
         webapp = register_routes(app_name, webapp, configurator)
         for setup_step in app_options.get('setup', []):
             directive, kw = list(setup_step.items())[0]
