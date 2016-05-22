@@ -14,6 +14,12 @@ log = logging.getLogger(__name__)
 
 @AuthProvider.GITHUB(category='auth_provider_impl')
 class GithubProvider(OAuth2Provider):
+    """ Github OAuth2 provider.
+
+    * Application management: https://github.com/settings/developers
+    * API reference: https://developer.github.com/v3/oauth/
+
+    """
     def __init__(self, client_id: str, client_secret: str, scope: List[str], redirect_uri: Optional[str] = None):
         """
         :param redirect_uri: The redirect_uri parameter is optional. If left out, GitHub will redirect users to the

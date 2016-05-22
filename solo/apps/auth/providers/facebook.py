@@ -14,6 +14,12 @@ log = logging.getLogger(__name__)
 
 @AuthProvider.FACEBOOK(category='auth_provider_impl')
 class FacebookProvider(OAuth2Provider):
+    """ Facebook OAuth2 provider.
+
+    * Application management: https://developers.facebook.com/apps/
+    * API reference: https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow
+
+    """
     def __init__(self, client_id: str, client_secret: str, scope: List[str], redirect_uri: Optional[str] = None):
         """
         :param redirect_uri: The redirect_uri parameter is optional. If left out, GitHub will redirect users to the

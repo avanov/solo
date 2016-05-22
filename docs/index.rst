@@ -11,7 +11,9 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   integrations.rst
+   getting_started.rst
+   providers.rst
+   migrations.rst
 
 
 
