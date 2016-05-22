@@ -1,15 +1,18 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from urllib.parse import urlencode
+import uuid
 
+from aiohttp_session import get_session
 from aiohttp import web
 
 from ..models import AuthProvider
+from ..exceptions import CSRFError, AuthorizationError
 
 
 class ThirdPartyProfile:
-    def __init__(self, id: str, username: str, email: Optional[str] = None):
+    def __init__(self, id: str, display_name: str, email: Optional[str] = None):
         self.id = id
-        self.username = username
+        self.display_name = display_name
         self.email = email
 
 
@@ -31,7 +34,8 @@ class OAuth2Provider:
                  redirect_uri: str,
                  authorize_url: str,
                  access_token_url: str,
-                 profile_url: str):
+                 profile_url: str,
+                 error_reason_field: Optional[str] = 'error'):
         self.client_id = client_id
         self.client_secret = client_secret
         self.scope = scope
@@ -40,12 +44,43 @@ class OAuth2Provider:
         self.authorize_url = authorize_url
         self.access_token_url = access_token_url
         self.profile_url = profile_url
+        self.error_reason_field = error_reason_field
+        """ Field name to consult when a provider returns an error response.
+        """
 
-    async def authorize(self, request: web.Request) -> web.Response:
-        raise NotImplementedError("Implement me")
+    async def authorize(self, request: web.Request) -> str:
+        """ Init internal authorization state and return necessary data for performing authorization.
+
+        :return: URL to redirect to in order to initialize authorization with a 3rd-party service
+        """
+        session = await get_session(request)
+        session['oauth.state'] = state = uuid.uuid4().hex
+        url = self.get_authorization_payload(state=state)
+        return url
 
     async def callback(self, request: web.Request) -> ProfileIntegration:
         raise NotImplementedError("Implement me")
+
+    async def validate_callback(self, request: web.Request) -> Tuple[str, str]:
+        """
+        :return: 2-tuple of (session state, OAuth2 exchangeable code)
+        """
+        session = await get_session(request)
+        session_state = session.pop('oauth.state', None)
+        request_state = request.GET.get('state')
+        if not session_state or session_state != request_state:
+            raise CSRFError(
+                    'State mismatch. Requested: {request_state}. Actual: {session_state}'.format(
+                            request_state=request_state,
+                            session_state=session_state
+                    )
+            )
+        code = request.GET.get('code')
+        if not code:
+            reason = request.GET.get(self.error_reason_field, 'n/a')
+            raise AuthorizationError("Authorization code was not provided. Reason: {}".format(reason),
+                                     reason=reason, provider=self)
+        return (session_state, code)
 
     def get_authorization_payload(self, state):
         return '{}?{}'.format(self.authorize_url, urlencode(dict(

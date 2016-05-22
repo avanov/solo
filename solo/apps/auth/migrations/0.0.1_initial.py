@@ -25,13 +25,13 @@ def upgrade():
         TYPE
         auth_provider
         AS
-        ENUM('github');
+        ENUM('github', 'facebook');
     """)
     op.create_table('auth',
     sa.Column('id', sa.BigInteger(), nullable=False),
     sa.Column('provider', PythonMappedEnum(AuthProvider, name='auth_provider'), nullable=False),
     sa.Column('provider_uid', sa.Unicode(length=140), server_default='', nullable=False),
-    sa.Column('access_token', sa.Unicode(length=140), server_default='', nullable=False),
+    sa.Column('access_token', sa.Unicode(length=200), server_default='', nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id'),

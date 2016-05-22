@@ -12,18 +12,20 @@ from ..exceptions import ProviderServiceError
 log = logging.getLogger(__name__)
 
 
-@AuthProvider.GITHUB(category='auth_provider_impl')
-class GithubProvider(OAuth2Provider):
+@AuthProvider.FACEBOOK(category='auth_provider_impl')
+class FacebookProvider(OAuth2Provider):
     def __init__(self, client_id: str, client_secret: str, scope: List[str], redirect_uri: Optional[str] = None):
         """
         :param redirect_uri: The redirect_uri parameter is optional. If left out, GitHub will redirect users to the
                              callback URL configured in the OAuth Application settings.
         """
-        super(GithubProvider, self).__init__(client_id, client_secret, scope,
-                                             redirect_uri=redirect_uri,
-                                             authorize_url='https://github.com/login/oauth/authorize',
-                                             access_token_url='https://github.com/login/oauth/access_token',
-                                             profile_url='https://api.github.com/user')
+        super(FacebookProvider, self).__init__(client_id, client_secret, scope,
+                                               redirect_uri=redirect_uri,
+                                               authorize_url='https://www.facebook.com/dialog/oauth',
+                                               access_token_url='https://graph.facebook.com/v2.6/oauth/access_token',
+                                               profile_url='https://graph.facebook.com/v2.6/me',
+                                               error_reason_field='error_reason')
+
 
     async def callback(self, request: web.Request) -> ProfileIntegration:
         """ Process github redirect
@@ -54,10 +56,10 @@ class GithubProvider(OAuth2Provider):
                         profile_data = await profile_r.json()
 
                     profile = ThirdPartyProfile(id=str(profile_data['id']),
-                                                display_name=profile_data.get('name', profile_data['login']),
+                                                display_name=profile_data['name'],
                                                 # email might be non-verified
                                                 email=profile_data.get('email'))
 
-                    return ProfileIntegration(provider=AuthProvider.GITHUB,
+                    return ProfileIntegration(provider=AuthProvider.FACEBOOK,
                                               access_token=access_token,
                                               profile=profile)

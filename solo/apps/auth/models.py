@@ -7,6 +7,7 @@ from solo import SumType
 
 class AuthProvider(SumType):
     GITHUB = 'github'
+    FACEBOOK = 'facebook'
 
 
 class Auth(Base):
@@ -17,7 +18,7 @@ class Auth(Base):
     provider_uid = sa.Column(sa.Unicode(140), nullable=False, default='', server_default='')
     """ Unique user identifier of a 3rd-party provider.
     """
-    access_token = sa.Column(sa.Unicode(140), nullable=False, default='', server_default='')
+    access_token = sa.Column(sa.Unicode(200), nullable=False, default='', server_default='')
     user_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'), nullable=False, index=True)
 
     __table_args__ = (

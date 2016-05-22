@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 from typing import List
 from solo import Configurator
 from ..models import AuthProvider

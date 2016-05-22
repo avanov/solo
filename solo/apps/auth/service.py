@@ -37,7 +37,7 @@ class AuthService(SQLService):
             if user is None:
                 log.debug('Creating a new user account from {provider} integration'.format(provider=integration.provider.value))
                 user_service = UserService(self.app)
-                user = User(name=integration.profile.username)
+                user = User(name=integration.profile.display_name)
                 user = await user_service.save(user)
                 # Insert auth entry
                 auth = Auth(provider=integration.provider,
