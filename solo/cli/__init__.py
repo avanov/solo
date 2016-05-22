@@ -40,7 +40,10 @@ def main(args=None, stdout=None):
                         version='Solo {}'.format(get_distribution("solo").version))
     subparsers = parser.add_subparsers(title='sub-commands',
                                        description='valid sub-commands',
-                                       help='additional help')
+                                       help='additional help',
+                                       dest='sub-command')
+    # make subparsers required (see http://stackoverflow.com/a/23354355/458106)
+    subparsers.required = True
 
     # $ solo run <config>
     # ---------------------------
