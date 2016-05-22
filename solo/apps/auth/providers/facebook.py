@@ -23,8 +23,7 @@ class FacebookProvider(OAuth2Provider):
                                                redirect_uri=redirect_uri,
                                                authorize_url='https://www.facebook.com/dialog/oauth',
                                                access_token_url='https://graph.facebook.com/v2.6/oauth/access_token',
-                                               profile_url='https://graph.facebook.com/v2.6/me',
-                                               error_reason_field='error_reason')
+                                               profile_url='https://graph.facebook.com/v2.6/me')
 
 
     async def callback(self, request: web.Request) -> ProfileIntegration:

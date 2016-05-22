@@ -34,8 +34,7 @@ class OAuth2Provider:
                  redirect_uri: str,
                  authorize_url: str,
                  access_token_url: str,
-                 profile_url: str,
-                 error_reason_field: Optional[str] = 'error'):
+                 profile_url: str):
         self.client_id = client_id
         self.client_secret = client_secret
         self.scope = scope
@@ -44,7 +43,6 @@ class OAuth2Provider:
         self.authorize_url = authorize_url
         self.access_token_url = access_token_url
         self.profile_url = profile_url
-        self.error_reason_field = error_reason_field
         """ Field name to consult when a provider returns an error response.
         """
 
@@ -77,8 +75,9 @@ class OAuth2Provider:
             )
         code = request.GET.get('code')
         if not code:
-            reason = request.GET.get(self.error_reason_field, 'n/a')
-            raise AuthorizationError("Authorization code was not provided. Reason: {}".format(reason),
+            reason = request.GET.get('error', 'n/a')
+            error_description = request.GET.get('error_description', '(no description)')
+            raise AuthorizationError("Authorization code was not provided. Reason: {} {}".format(reason, error_description),
                                      reason=reason, provider=self)
         return (session_state, code)
 
