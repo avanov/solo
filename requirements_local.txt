@@ -1,4 +1,4 @@
-Sphinx==1.4.1
+Sphinx==1.4.2
 invoke==0.12.2
 wheel==0.29.0
 
