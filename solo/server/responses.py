@@ -1,20 +1,22 @@
 import json
 from typing import Optional, Any, List, Dict, TypeVar
 
-from aiohttp import web
+from aiohttp.web import Response
 
 
 JsonApiPayload = TypeVar('JsonApiPayload', Dict[str, Any],
                                            List[Dict[str, Any]])
 
+encode_json = json.dumps
 
-def ok(data: Optional[JsonApiPayload] = None) -> web.Response:
+
+def ok(data: Optional[JsonApiPayload] = None) -> Response:
     if data is None:
         data = {}
     return _response(200, data)
 
 
-def _response(status: int, data: JsonApiPayload) -> web.Response:
+def _response(status: int, data: JsonApiPayload) -> Response:
     """ Generate a final response in JSON API format:
 
     * http://jsonapi.org/format/#document-top-level
@@ -24,5 +26,7 @@ def _response(status: int, data: JsonApiPayload) -> web.Response:
         'data': data,
         'jsonapi': {'version': '1.0'}
     }
-    return web.Response(status=status, text=json.dumps(data),
-                        content_type='application/vnd.api+json')
+    return Response(status=status,
+                    text=encode_json(data),
+                    content_type='application/vnd.api+json',
+                    charset='utf-8')

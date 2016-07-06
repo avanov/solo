@@ -1,6 +1,8 @@
 import json
+from typing import Dict, Any
 
-from aiohttp.web import Response, Application
+from aiohttp.web import Request, Response, Application
+from solo.server.responses import _response
 
 
 json_encode = json.dumps
@@ -10,18 +12,15 @@ class JsonRendererFactory(object):
     def __init__(self, name):
         self.name = name
 
-    def __call__(self, request, view_response):
-        return Response(text=json_encode(view_response),
-                        content_type='application/json',
-                        charset='utf-8',
-                        status=200)
+    def __call__(self, request: Request, view_response: Dict[str, Any]) -> Response:
+        return _response(200, view_response)
 
 
 class StringRendererFactory(object):
     def __init__(self, name):
         self.name = name
 
-    def __call__(self, request, view_response):
+    def __call__(self, request: Request, view_response: Any):
         return Response(text=str(view_response),
                         content_type='text/plain',
                         charset='utf-8',

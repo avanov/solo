@@ -2,6 +2,7 @@ from aiohttp import web
 from typing import Dict, Any
 
 from solo import http_defaults, http_endpoint
+from solo.server import responses
 from ..service import AuthService
 
 
@@ -16,7 +17,7 @@ class AuthenticationHandler:
     async def init_authorization(self) -> web.Response:
         provider = self.request.app['solo.apps.auth'][self.context['provider'].value]
         url = await provider.authorize(self.request)
-        return web.HTTPFound(location=url)
+        return {'location': url}
 
 
 @http_defaults(route_name='/login/{provider}/callback', renderer='json')

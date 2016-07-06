@@ -10,7 +10,7 @@ from typing import Dict, Any
 from pkg_resources import get_distribution
 
 from solo.integrations.alembic import integrate_alembic_cli
-from solo.server import init_webapp
+from solo.server.startup import init_webapp
 from .util import parse_app_config
 
 

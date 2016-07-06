@@ -19,7 +19,7 @@ import warnings
 from aiohttp import web
 
 from solo.cli.util import parse_app_config
-from solo.server import init_webapp
+from solo import init_webapp
 
 
 class _AssertWarnsContext:
