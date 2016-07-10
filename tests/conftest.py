@@ -8,15 +8,16 @@ we use the same suite as the base framework.
 import asyncio
 import aiohttp
 import collections
-import gc
 import logging
 import pytest
 import re
-import socket
 import sys
 import warnings
 
 from aiohttp import web
+from solo.testutils import (
+    loop_context, unused_port
+)
 
 from solo.cli.util import parse_app_config
 from solo import init_webapp
@@ -157,46 +158,33 @@ def log():
     yield _AssertLogsContext
 
 
-@pytest.fixture
-def unused_port():
-    def f():
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind(('127.0.0.1', 0))
-            return s.getsockname()[1]
-    return f
+# add the unused_port and loop fixtures
+pytest.fixture(unused_port)
 
 
 @pytest.yield_fixture
-def loop(request):
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(None)
-
-    yield loop
-
-    if not loop._closed:
-        loop.call_soon(loop.stop)
-        loop.run_forever()
-        loop.close()
-    gc.collect()
-    asyncio.set_event_loop(None)
+def loop():
+    with loop_context() as loop:
+        yield loop
 
 
 @pytest.yield_fixture
-def create_server(loop, unused_port):
+def create_server(loop):
     app = handler = srv = None
-    config = parse_app_config('./config.yml')  # TODO: move path to outer scope
+    config = parse_app_config('./test_config.yml')  # TODO: move path to outer scope
 
     async def create(*, debug=False, ssl_ctx=None, proto='http'):
         nonlocal app, handler, srv, config
-
-        app = await init_webapp(loop, config)
         port = unused_port()
-        handler = app.make_handler(debug=debug, keep_alive_on=False)
-        srv = await loop.create_server(handler, '127.0.0.1', port,
-                                       ssl=ssl_ctx)
+        app_manager = await init_webapp(loop, config)
+        server_future = app_manager.create_server_future(host='127.0.0.1', port=port, ssl=ssl_ctx)
         if ssl_ctx:
             proto += 's'
-        url = "{}://127.0.0.1:{}".format(proto, port)
+        url = "{}://127.0.0.1:{}/".format(proto, port)
+
+        app = app_manager.app
+        handler = app_manager.handler
+        srv = await server_future
         return app, url
 
     yield create
@@ -206,6 +194,10 @@ def create_server(loop, unused_port):
         if hasattr(app, 'dbengine'):
             app.dbengine.terminate()
             await app.dbengine.wait_closed()
+
+        if hasattr(app, 'memstore'):
+            await app.memstore.clear()
+
         await handler.finish_connections()
         await app.finish()
         srv.close()
@@ -217,35 +209,25 @@ def create_server(loop, unused_port):
 class Client:
     def __init__(self, session, url):
         self._session = session
-        if not url.endswith('/'):
-            url += '/'
         self._url = url
 
     def close(self):
         self._session.close()
 
     def get(self, path, **kwargs):
-        while path.startswith('/'):
-            path = path[1:]
-        url = self._url + path
+        url = "{}/{}".format(self._url.rstrip('/'), path.lstrip('/'))
         return self._session.get(url, **kwargs)
 
     def post(self, path, **kwargs):
-        while path.startswith('/'):
-            path = path[1:]
-        url = self._url + path
+        url = "{}/{}".format(self._url.rstrip('/'), path.lstrip('/'))
         return self._session.post(url, **kwargs)
 
     def delete(self, path, **kwargs):
-        while path.startswith('/'):
-            path = path[1:]
-        url = self._url + path
+        url = "{}/{}".format(self._url.rstrip('/'), path.lstrip('/'))
         return self._session.delete(url)
 
     def ws_connect(self, path, **kwargs):
-        while path.startswith('/'):
-            path = path[1:]
-        url = self._url + path
+        url = "{}/{}".format(self._url.rstrip('/'), path.lstrip('/'))
         return self._session.ws_connect(url, **kwargs)
 
 

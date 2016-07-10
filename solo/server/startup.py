@@ -7,6 +7,7 @@ from aiohttp import web
 from aiohttp_session.redis_storage import RedisStorage
 
 from solo import Configurator
+from solo.configurator import ApplicationManager
 from solo.configurator.url import complete_route_pattern
 from solo.configurator.view import PredicatedHandler
 from solo.server import db
@@ -17,7 +18,7 @@ log = logging.getLogger(__name__)
 
 
 async def init_webapp(loop: asyncio.AbstractEventLoop,
-                      config: Dict[str, Any]) -> web.Application:
+                      config: Dict[str, Any]) -> ApplicationManager:
     webapp = web.Application(loop=loop,
                              debug=config['debug'])
 

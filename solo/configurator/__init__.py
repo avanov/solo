@@ -33,14 +33,22 @@ class ApplicationManager:
     def __init__(self, app: Application):
         self.app = app
         self.loop = app.loop
-        self.handler = app.make_handler()
+        self.handler = app.make_handler(debug=app['config']['debug'], keep_alive_on=app['config']['server']['keep_alive'])
         self.server = None
 
-    def create_server(self):
+    def create_server(self, host: Optional[str] = None, port: Optional[int] = None, ssl: Optional[bool] = None):
         log.debug('Creating a new web server...')
+        self.server = self.loop.run_until_complete(self.create_server_future(host, port, ssl))
+
+    def create_server_future(self, host: Optional[str] = None, port: Optional[int] = None, ssl: Optional[bool] = None):
+        """ Used in conftest
+        """
         config = self.app['config']
-        f = self.loop.create_server(self.handler, config['server']['host'], config['server']['port'])
-        self.server = self.loop.run_until_complete(f)
+        if host is None:
+            host = config['server']['host']
+        if port is None:
+            port = config['server']['port']
+        return self.loop.create_server(self.handler, host, port, ssl=ssl)
 
     def __enter__(self):
         log.debug('Entering application context...')

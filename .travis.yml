@@ -2,12 +2,22 @@
 sudo: false
 language: python
 cache: pip
+services:
+  - postgresql
+  - redis-server
+addons:
+  postgresql: "9.4"
+
 install:
   - pip install -r ./requirements.txt
   - pip install -r ./requirements_test.txt
   - pip install coveralls
 python:
   - "3.5"
+
+before_script:
+  - psql -c 'create role solo with superuser;' -U postgres
+  - psql -c 'create database solo;' -U solo
 
 # --source specifies what packages to cover, you probably want to use that option
 script:

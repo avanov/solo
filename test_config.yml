@@ -3,6 +3,8 @@ debug: true
 server:
   host: 0.0.0.0
   port: 8000
+  keep_alive: False
+  public_uri: "http://127.0.0.1:4200"
 
 postgresql:
   host: 127.0.0.1
@@ -20,15 +22,25 @@ redis:
   min_connections: 1
   max_connections: 10
 
+session:
+  cookie_name: solo_sid
+  cookie_secure: False
+  cookie_httponly: True
+
 apps:
   solo.apps.accounts:
-    url_prefix: /users
+    url_prefix: /api/users
 
-  solo.apps.oauth:
-    url_prefix: /o
-
-  solo.apps.hello:
-    url_prefix: /solo
+  solo.apps.auth:
+    url_prefix: /api/o
+    setup:
+      - enable_provider:
+          name: github
+          client_id: "fake_id"
+          client_secret: "fake_secret"
+          scope:
+            - "user:email"
+            - public_repo
 
 logging:
   version: 1

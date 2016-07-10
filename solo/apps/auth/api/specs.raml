@@ -13,10 +13,15 @@ protocols:
   - HTTPS
 
 /login:
-  /{provider:<solo.apps.auth.models:AuthProvider>}:
-    get:
-      description: Initiate authentication
+  /be:
+    /{provider:<solo.apps.auth.models:AuthProvider>}:
+      post:
+        description: Initiate authentication flow on backend
 
-    /callback:
-      get:
-        description: Callback
+      /callback:
+        get:
+          description: Callback handler on backend
+
+  /fe:
+    post:
+      description: Authenticate and authorize frontend client after authenticated backend

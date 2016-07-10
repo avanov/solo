@@ -90,8 +90,10 @@ class PredicatedHandler:
                 context = {}
                 rules = self.rules
                 for k, v in request.match_info.items():
-                    if k in rules:
+                    if k in rules:  # match SumType's case
                         context[k] = self.rules[k].match(v)
+                    else:  # regular value assignment
+                        context[k] = v
                 if view_item.attr:
                     # handler is a coroutine method of a class
                     handler = getattr(handler(request, context), view_item.attr)

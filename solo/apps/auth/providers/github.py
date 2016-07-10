@@ -2,11 +2,12 @@ import logging
 from typing import List, Optional
 
 from aiohttp import web
+from aiohttp.web import HTTPBadRequest
 from aiohttp import ClientSession
 
 from ..models import AuthProvider
 from .base_oauth2 import OAuth2Provider, ThirdPartyProfile, ProfileIntegration
-from ..exceptions import ProviderServiceError
+from ..exceptions import ProviderServiceError, CSRFError
 
 
 log = logging.getLogger(__name__)
@@ -34,7 +35,10 @@ class GithubProvider(OAuth2Provider):
     async def callback(self, request: web.Request) -> ProfileIntegration:
         """ Process github redirect
         """
-        session_state, code = await self.validate_callback(request)
+        try:
+            session_state, code = await self.validate_callback(request)
+        except CSRFError:
+            raise HTTPBadRequest
 
         # Now retrieve the access token with the code
         access_url = self.get_access_token_payload(session_state, code)

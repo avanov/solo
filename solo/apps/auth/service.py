@@ -1,5 +1,8 @@
 import logging
+from typing import Optional
+
 from aiohttp.web import Application
+from aiohttp_session import Session
 from sqlalchemy.sql import select
 
 from solo.services import SQLService
@@ -14,8 +17,23 @@ log = logging.getLogger(__name__)
 
 
 class AuthService(SQLService):
+    SESSION_USER_KEY = 'user_id'
+
     def __init__(self, app: Application):
         super(AuthService, self).__init__(app, Auth)
+        self.user_service = UserService(app)
+
+    def user_to_session(self, user: User, session: Session) -> bool:
+        session[self.SESSION_USER_KEY] = user.id
+        return True
+
+    async def user_from_session(self, session: Session) -> Optional[User]:
+        try:
+            user_id = session[self.SESSION_USER_KEY]
+        except KeyError:
+            return None
+        user = await self.user_service.get(User.id, user_id)
+        return user
 
     async def user_from_integration(self, integration: ProfileIntegration) -> User:
         """ Returns either an existing user associated with a given 3rd-party integration, or a newly created one.
@@ -36,9 +54,8 @@ class AuthService(SQLService):
             user = await csr.fetchone()
             if user is None:
                 log.debug('Creating a new user account from {provider} integration'.format(provider=integration.provider.value))
-                user_service = UserService(self.app)
                 user = User(name=integration.profile.display_name)
-                user = await user_service.save(user)
+                user = await self.user_service.save(user)
                 # Insert auth entry
                 auth = Auth(provider=integration.provider,
                             provider_uid=integration.profile.id,
