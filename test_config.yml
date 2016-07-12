@@ -29,10 +29,7 @@ session:
 
 apps:
   solo.apps.accounts:
-    url_prefix: /api/users
-
-  solo.apps.auth:
-    url_prefix: /api/o
+    url_prefix: /api
     setup:
       - enable_provider:
           name: github

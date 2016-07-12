@@ -1,9 +1,12 @@
+from aiohttp.web import Request
+
 from .util import as_sorted_tuple
 
 
 class RequestMethodPredicate:
     def __init__(self, val, config):
-        """
+        """ Predicates are constructed at ``solo.configurator.config.util.PredicateList.make()``
+
         :param val: value passed to view_config/view_defaults
         :param config:
         """
@@ -18,7 +21,7 @@ class RequestMethodPredicate:
 
     phash = text
 
-    def __call__(self, context, request):
+    async def __call__(self, context, request: Request) -> bool:
         """
         :param context: at the moment context may be only None
         :type context: None

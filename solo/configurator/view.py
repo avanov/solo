@@ -80,7 +80,7 @@ class PredicatedHandler:
         # here predicate is an instance object
         for view_item in self.view_metas:
             for predicate in view_item.predicates:
-                if not predicate(None, request):
+                if not (await predicate(None, request)):
                     log.debug('Predicate {} failed for {} {}'.format(predicate, request.method, request.path_qs))
                     break
             else:

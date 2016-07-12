@@ -1,12 +1,12 @@
+import uuid
 from typing import List, Optional, Tuple
 from urllib.parse import urlencode
-import uuid
 
-from aiohttp_session import get_session
 from aiohttp import web
+from aiohttp_session import get_session
 
-from ..models import AuthProvider
-from ..exceptions import CSRFError, AuthorizationError
+from solo.apps.accounts.exceptions import CSRFError, AuthorizationError
+from solo.apps.accounts.models import AuthProvider
 
 
 class ThirdPartyProfile:

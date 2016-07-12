@@ -1,8 +1,7 @@
 import logging
 from typing import List
 from solo import Configurator
-from ..models import AuthProvider
-
+from solo.apps.accounts.models import AuthProvider
 
 log = logging.getLogger(__name__)
 
@@ -14,10 +13,10 @@ def enable_provider(config: Configurator,
                     scope: List[str]):
     log.debug('Enabling authentication provider: {}'.format(name.upper()))
     provider = AuthProvider.match(name)
-    auth_registry = config.registry.setdefault('solo.apps.auth', {})
+    auth_registry = config.registry.setdefault('solo.apps.accounts', {})
     redirect_uri = '{}{}'.format(
         config.registry['config']['server']['public_uri'].rstrip('/'),
-        config.router.url('solo.apps.auth:/login/be/{provider}/callback', parts={'provider': provider.value})
+        config.router.url('solo.apps.accounts:/login/{provider}/callback', parts={'provider': provider.value})
     )
     provider_impl = provider['auth_provider_impl']
     auth_registry[name] = provider_impl(client_id=client_id,

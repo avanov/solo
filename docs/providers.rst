@@ -1,6 +1,6 @@
 Social Login Providers
 ======================
 
-.. automodule:: solo.apps.auth.providers.facebook
+.. automodule:: solo.apps.accounts.providers.facebook
 
    .. autoclass:: FacebookProvider

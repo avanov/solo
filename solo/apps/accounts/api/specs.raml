@@ -12,15 +12,28 @@ baseUriParameters:
 protocols:
   - HTTPS
 
-/:
+/login:
+  /{provider:<solo.apps.accounts.models:AuthProvider>}:
+    post:
+      description: Initiate authentication flow on backend
+
+    /callback:
+      get:
+        description: Callback handler on backend
+
+
+/users:
   get:
     description: List registered accounts
 
-/{userId}:
-  get:
-    description: Get account details
-  post:
-    description: Update account details
-  delete:
-    description: Delete account
+  /me:
+    get:
+      description: Current session's account details. Can be used to authenticate and authorize frontend client after authenticated backend.
 
+  /{userId}:
+    get:
+      description: Get account details
+    post:
+      description: Update account details
+    delete:
+      description: Delete account

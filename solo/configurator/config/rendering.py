@@ -2,14 +2,14 @@ import json
 from typing import Dict, Any
 
 from aiohttp.web import Request, Response, Application
-from solo.server.responses import _response
+from solo.server.response import _response
 
 
 json_encode = json.dumps
 
 
 class JsonRendererFactory(object):
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.name = name
 
     def __call__(self, request: Request, view_response: Dict[str, Any]) -> Response:
@@ -17,7 +17,7 @@ class JsonRendererFactory(object):
 
 
 class StringRendererFactory(object):
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.name = name
 
     def __call__(self, request: Request, view_response: Any):
@@ -39,10 +39,10 @@ class RenderingConfigurator:
         self.app = app
         self.renderers = {}
 
-    def add_renderer(self, name, factory):
+    def add_renderer(self, name: str, factory):
         self.renderers[name] = factory
 
-    def get_renderer(self, name):
+    def get_renderer(self, name: str):
         try:
             template_suffix = name.rindex(".")
         except ValueError:
