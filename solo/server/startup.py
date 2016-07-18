@@ -24,13 +24,12 @@ async def init_webapp(loop: asyncio.AbstractEventLoop,
 
     configurator = Configurator(webapp, registry={'config': config})
 
-    apps = config['apps']
-    for app_name, app_options in apps.items():
-        log.debug("------- Setting up {} -------".format(app_name))
-        configurator.include(app_name, app_options['url_prefix'])
-        configurator.scan(package=app_name, ignore=['.__pycache__', '{}.migrations'.format(app_name)])
-        webapp = register_routes(app_name, webapp, configurator)
-        for setup_step in app_options.get('setup', []):
+    for app in config['apps']:
+        log.debug("------- Setting up {} -------".format(app['name']))
+        configurator.include(app['name'], app['url_prefix'])
+        configurator.scan(package=app['name'], ignore=['.__pycache__', '{}.migrations'.format(app['name'])])
+        webapp = register_routes(app['name'], webapp, configurator)
+        for setup_step in app.get('setup', []):
             directive, kw = list(setup_step.items())[0]
             getattr(configurator, directive)(**kw)
 

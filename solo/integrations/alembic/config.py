@@ -35,7 +35,7 @@ def alembic_config_from_solo(solo_cfg: Dict[str, Any]) -> Config:
     # to .alembic/versions.  When using multiple version
     # directories, initial revisions must be specified with --version-path
     # version_locations = %(here)s/bar %(here)s/bat .alembic/versions
-    version_locations = ' '.join(('{}:migrations'.format(app) for app in solo_cfg['apps']))
+    version_locations = ' '.join(('{}:migrations'.format(app['name']) for app in solo_cfg['apps']))
     alembic_cfg.set_main_option("version_locations", version_locations)
 
     # the output encoding used when revision files

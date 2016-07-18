@@ -28,7 +28,7 @@ session:
   cookie_httponly: True
 
 apps:
-  solo.apps.accounts:
+  - name: solo.apps.accounts
     url_prefix: /api
     setup:
       - enable_provider:
