@@ -4,7 +4,7 @@ from typing import List, Optional
 from aiohttp import ClientSession
 from aiohttp import web
 
-from solo.apps.accounts.models import AuthProvider
+from solo.apps.accounts.model import AuthProvider
 from solo.apps.accounts.exceptions import ProviderServiceError
 from .base_oauth2 import OAuth2Provider, ThirdPartyProfile, ProfileIntegration
 

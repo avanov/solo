@@ -1,11 +1,12 @@
 import logging
-from typing import Optional
+from typing import Optional, Set, Dict
 
 from aiohttp.web import Application
-from aiohttp_session import Session
+from aiohttp.web import Request
+from aiohttp_session import get_session
 from sqlalchemy import select
 
-from solo.apps.accounts.models import Auth, User
+from solo.apps.accounts.model import Auth, User, UserType, Guest, Group, users_groups_association, Permissions
 from solo.apps.accounts.providers.base_oauth2 import ProfileIntegration
 
 from solo.services import SQLService
@@ -13,13 +14,37 @@ from solo.services import SQLService
 
 log = logging.getLogger(__name__)
 
+USER_KEY = '__user__'
+
 
 class UserService(SQLService):
     def __init__(self, app: Application):
         super(UserService, self).__init__(app, User)
+        self._permissions = {}  # type: Dict[int, Permissions]
 
+    async def permissions(self, user: UserType) -> Permissions:
+        if user is Guest:
+            return Permissions(Guest, set())
+        try:
+            permissions = self._permissions[user.id]
+        except KeyError:
+            query = (select(self.columns([Group.permissions], entity=Group))
+                    .select_from(users_groups_association.join(
+                        Group,
+                        users_groups_association.c.group_id == Group.id
+                    ))
+                    .where(users_groups_association.c.user_id == user.id))
 
-USER_KEY = '__user__'
+            async with self.engine.acquire() as c:
+                csr = await c.execute(query)
+                groups = await csr.fetchall()
+                permissions = set()
+                map(lambda x: permissions.add(x['permissions']), groups)
+
+            permissions = Permissions(user, permissions)
+            self._permissions[user.id] = permissions
+
+        return permissions
 
 
 class AuthService(SQLService):
@@ -28,11 +53,13 @@ class AuthService(SQLService):
         super(AuthService, self).__init__(app, Auth)
         self.user_service = UserService(app)
 
-    def user_to_session(self, user: User, session: Session) -> bool:
+    async def user_to_session(self, request: Request, user: User) -> bool:
+        session = await get_session(request)
         session[USER_KEY] = user.id
         return True
 
-    async def user_from_session(self, session: Session) -> Optional[User]:
+    async def session_user(self, request: Request) -> Optional[User]:
+        session = await get_session(request)
         try:
             user_id = session[USER_KEY]
         except KeyError:

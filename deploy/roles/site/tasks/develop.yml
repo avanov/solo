@@ -19,6 +19,6 @@
 
 - name: Apply exiting database migrations
   become: no
-  command: "{{ site_pyenv_path }}/versions/{{ project_name }}/bin/alembic upgrade head"
+  command: "{{ site_pyenv_path }}/versions/{{ project_name }}/bin/solo db upgrade heads --solocfg ./test_config.yml"
   args:
     chdir: /vagrant

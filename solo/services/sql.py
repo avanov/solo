@@ -1,5 +1,5 @@
 import logging
-from typing import List, Set, Optional
+from typing import List, Iterable, Set, Optional
 
 from aiohttp import web
 from sqlalchemy import Table, Column, select
@@ -58,13 +58,16 @@ class SQLService:
             instance.id = instance_id
             return instance
 
-    def columns(self, fields: Optional[List[str]] = None, exclude: Optional[Set[str]] = None, entity: Optional[Base] = None) -> List[InstrumentedAttribute]:
+    def columns(self,
+                fields: Optional[List[InstrumentedAttribute]] = None,
+                exclude: Optional[Set[InstrumentedAttribute]] = None,
+                entity: Optional[Base] = None) -> Iterable[InstrumentedAttribute]:
         """ Return columns to be used within select() statement constructors.
         """
         if entity is None:
             entity = self.e
-        if not fields:
-            fields = entity.__table__.c.keys()
         if exclude is None:
             exclude = set()
-        return [getattr(entity, f) for f in fields if f not in exclude]
+        if not fields:
+            return (getattr(entity, f) for f in entity.__table__.c.keys() if getattr(entity, f) not in exclude)
+        return (f for f in fields if f not in exclude)

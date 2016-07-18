@@ -6,7 +6,7 @@ from aiohttp import web
 from aiohttp_session import get_session
 
 from solo.apps.accounts.exceptions import CSRFError, AuthorizationError
-from solo.apps.accounts.models import AuthProvider
+from solo.apps.accounts.model import AuthProvider
 
 
 class ThirdPartyProfile:

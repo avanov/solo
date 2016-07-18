@@ -41,8 +41,5 @@ class BackendAuthenticationCallbackHandler:
 
         integration = await provider.callback(request)
         user = await auth_service.user_from_integration(integration)
-        session = await get_session(request)
-        _ok_ = auth_service.user_to_session(user, session)
+        _ok_ = await auth_service.user_to_session(request, user)
         return HTTPFound(location='/authenticated')
-
-

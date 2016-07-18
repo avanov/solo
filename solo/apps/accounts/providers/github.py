@@ -6,7 +6,7 @@ from aiohttp import web
 from aiohttp.web import HTTPBadRequest
 
 from solo.apps.accounts.exceptions import ProviderServiceError, CSRFError
-from solo.apps.accounts.models import AuthProvider
+from solo.apps.accounts.model import AuthProvider
 from .base_oauth2 import OAuth2Provider, ThirdPartyProfile, ProfileIntegration
 
 

@@ -1,7 +1,7 @@
 import logging
 from typing import List
 from solo import Configurator
-from solo.apps.accounts.models import AuthProvider
+from solo.apps.accounts.model import AuthProvider
 
 log = logging.getLogger(__name__)
 

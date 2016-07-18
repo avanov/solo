@@ -1,18 +1,18 @@
 from typing import Dict, Any
 
 from aiohttp import web
-from aiohttp.web import HTTPFound, HTTPForbidden
+from aiohttp.web import HTTPForbidden
 
 from solo import http_defaults, http_endpoint
 from solo.apps.accounts.service import UserService
-from solo.apps.accounts.models import User, Guest
+from solo.apps.accounts.model import User, Guest
 from solo.apps.accounts import get_user
 
 
-@http_defaults(route_name='/users')
+@http_defaults(route_name='/users', permission='users:view', renderer='json')
 class AccountsListHandler:
 
-    def __init__(self, request: web.Request):
+    def __init__(self, request: web.Request, context: Dict[str, Any]):
         self.request = request
 
     @http_endpoint(request_method='GET')
@@ -20,7 +20,7 @@ class AccountsListHandler:
         return {}
 
 
-@http_defaults(route_name='/users/me', renderer='json')
+@http_defaults(route_name='/users/me', authenticated=True, renderer='json')
 class FrontendAuthenticationHandler:
 
     def __init__(self, request: web.Request, context: Dict[str, Any]):
@@ -41,7 +41,7 @@ class FrontendAuthenticationHandler:
         }
 
 
-@http_defaults(route_name='/users/{userId}', renderer='json')
+@http_defaults(route_name='/users/{userId}', authenticated=True, renderer='json')
 class AccountDetailsHandler:
 
     def __init__(self, request: web.Request, context: Dict[str, Any]):

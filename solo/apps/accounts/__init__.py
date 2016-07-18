@@ -12,4 +12,7 @@ def includeme(config: Configurator):
     config.include_api_specs(__name__, 'api/specs.raml')
     config.add_directive(enable_provider)
     config.views.add_view_predicate('permission', predicate.PermissionPredicate,
-                                    weighs_less_than='request_method')
+                                    weighs_more_than='request_method')
+    config.views.add_view_predicate('authenticated', predicate.AuthenticatedPredicate,
+                                    weighs_less_than='permission')
+

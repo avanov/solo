@@ -1,10 +1,11 @@
-from aiohttp.web import Request
+from typing import Optional
+from aiohttp.web import Request, HTTPClientError
 
 from .util import as_sorted_tuple
 
 
 class RequestMethodPredicate:
-    def __init__(self, val, config):
+    def __init__(self, val, config, raises: Optional[HTTPClientError] = None):
         """ Predicates are constructed at ``solo.configurator.config.util.PredicateList.make()``
 
         :param val: value passed to view_config/view_defaults
@@ -15,6 +16,7 @@ class RequestMethodPredicate:
             # GET implies HEAD too
             request_method = as_sorted_tuple(request_method + ('HEAD',))
         self.val = request_method
+        self.raises = raises
 
     def text(self):
         return 'request_method = %s' % (','.join(self.val))
