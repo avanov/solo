@@ -22,12 +22,14 @@ Role Variables
 
 Here is the list of all variables and their default values:
 
-* ``pyenv_path: "{{ ansible_env.HOME }}/pyenv"``
+* ``pyenv_env: "user"``
+* ``pyenv_path: "{% if pyenv_env == 'user' %}{{ ansible_env.HOME }}/pyenv{% else %}/usr/local/pyenv{% endif %}"``
 * ``pyenv_owner: "{{ ansible_env.USER }}"``
 * ``pyenv_python_versions: ["3.4.1"]``
 * ``pyenv_virtualenvs: [{ venv_name: "latest", py_version: "3.4.1" }]``
 * ``pyenv_update_git_install: no``
-
+* ``pyenv_enable_autocompletion: no``
+* ``pyenv_setting_path: "{% if pyenv_env == 'user' %}~/.bashrc{% else %}/etc/profile.d/pyenv.sh{% endif %}"``
 
 Dependencies
 ------------
@@ -43,13 +45,14 @@ Example Playbook
            pyenv_path: "{{ home }}/pyenv"
            pyenv_owner: "{{ instance_owner }}"
            pyenv_update_git_install: no
+           pyenv_enable_autocompletion: no
            pyenv_python_versions:
              - "3.4.1"
              - "2.7.8"
            pyenv_virtualenvs:
              - venv_name: "latest_v3"
                py_version: "3.4.1"
-               
+
              - venv_name: "latest_v2"
                py_version: "2.7.8"
 

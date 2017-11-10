@@ -21,6 +21,7 @@ docs/_build
 
 # Ignore vagrant box meta files
 .vagrant/
+*-console.log
 
 # Compass/Sass cache
 .sass-cache/

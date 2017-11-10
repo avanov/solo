@@ -8,6 +8,7 @@
   action: apt pkg={{ item }} state=latest
   with_items:
     - python-apt
+    - ca-certificates
     - software-properties-common
     - python-pycurl
     - g++

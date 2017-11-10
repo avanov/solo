@@ -10,7 +10,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # please see the online documentation at vagrantup.com.
 
     # Every Vagrant virtual environment requires a box to build off of.
-    config.vm.box = "ubuntu/wily64"
+    config.vm.box = "ubuntu/zesty64"
 
     # Web server
     config.vm.network :forwarded_port, guest: 80, host: 30080

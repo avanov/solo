@@ -2,9 +2,10 @@
 
 [![Build Status](https://travis-ci.org/DavidWittman/ansible-redis.svg?branch=master)](https://travis-ci.org/DavidWittman/ansible-redis) [![Ansible Galaxy](https://img.shields.io/badge/galaxy-DavidWittman.redis-blue.svg?style=flat)](https://galaxy.ansible.com/detail#/role/730)
 
- - Requires Ansible 1.6.3+
+ - Ansible 2.1+
+   - Ansible 1.9.x is currently supported, but it will be deprecated soon
  - Compatible with most versions of Ubuntu/Debian and RHEL/CentOS 6.x
-
+ 
 ## Contents
 
  1. [Installation](#installation)
@@ -12,7 +13,10 @@
   1. [Single Redis node](#single-redis-node)
   2. [Master-Slave Replication](#master-slave-replication)
   3. [Redis Sentinel](#redis-sentinel)
- 3. [Installing redis from a source file in the ansible role](#installing-redis-from-a-source-file-in-the-ansible-role)
+ 3. [Advanced Options](#advanced-options)
+  1. [Verifying checksums](#verifying-checksums)
+  2. [Install from local tarball](#install-from-local-tarball)
+  3. [Building 32-bit binaries](#building-32-bit-binaries)
  4. [Role Variables](#role-variables)
 
 ## Installation
@@ -143,20 +147,57 @@ This will configure the Sentinel nodes to monitor the master we created above us
 Along with the variables listed above, Sentinel has a number of its own configurables just as Redis server does. These are prefixed with `redis_sentinel_`, and are enumerated in the **Role Variables** section below.
 
 
-## Installing redis from a source file in the ansible role
+## Advanced Options
 
-If the environment your server resides in does not allow downloads (i.e. if the machine is sitting in a dmz) set the variable `redis_tarball` to the path of a locally downloaded tar.gz file to prevent a http download from redis.io.  
-Do not forget to set the version variable to the same version of the tar.gz. to avoid confusion !
+### Verifying checksums
 
-For example (file was stored in same folder as the playbook that included the redis role):
+Set the `redis_verify_checksum` variable to true to use the checksum verification option for `get_url`. Note that this will only verify checksums when Redis is downloaded from a URL, not when one is provided in a tarball with `redis_tarball`. Due to differences in the `get_url` module in Ansible 1.x and Ansible 2.x, this feature behaves differently depending on the version of Ansible which you are using.
+
+#### Ansible 1.x
+
+In Ansible 1.x, the `get_url` module only supports verifying sha256 checksums, which are not provided by default. If you wish to set `redis_verify_checksum`, you must also define a sha256 checksum with the `redis_checksum` variable.
+
+``` yaml
+- name: install redis on ansible 1.x and verify checksums
+  hosts: all
+  roles:
+    - role: DavidWittman.redis
+      redis_version: 3.0.7
+      redis_verify_checksum: true
+      redis_checksum: b2a791c4ea3bb7268795c45c6321ea5abcc24457178373e6a6e3be6372737f23
+```
+
+#### Ansible 2.x
+
+When using Ansible 2.x, this role will verify the sha1 checksum of the download against checksums defined in the `redis_checksums` variable in `vars/main.yml`. If your version is not defined in here or you wish to override the checksum with one of your own, simply set the `redis_checksum` variable. As in the example below, you will need to prefix the checksum with the type of hash which you are using.
+
+``` yaml
+- name: install redis on ansible 1.x and verify checksums
+  hosts: all
+  roles:
+    - role: DavidWittman.redis
+      redis_version: 3.0.7
+      redis_verify_checksum: true
+      redis_checksum: "sha256:b2a791c4ea3bb7268795c45c6321ea5abcc24457178373e6a6e3be6372737f23"
+```
+
+### Install from local tarball
+
+If the environment your server resides in does not allow downloads (i.e. if the machine is sitting in a dmz) set the variable `redis_tarball` to the path of a locally downloaded Redis tarball to use instead of downloading over HTTP from redis.io.
+
+Do not forget to set the version variable to the same version of the tarball to avoid confusion! For example:
+
 ```yml
 vars:
-  - redis_version: 2.8.14
-  - redis_tarball: redis-2.8.14.tar.gz
+  redis_version: 2.8.14
+  redis_tarball: /path/to/redis-2.8.14.tar.gz
 ```
-In this case the source archive is copied towards the server over ssh rather than downloaded.
 
+In this case the source archive is copied to the server over SSH rather than downloaded.
 
+### Building 32 bit binaries
+
+To build 32-bit binaries of Redis (which can be used for [memory optimization](https://redis.io/topics/memory-optimization)), set `redis_make_32bit: true`. This installs the necessary dependencies (x86 glibc) on RHEL/Debian/SuSE and sets the option '32bit' when running make.
 
 ## Role Variables
 
@@ -167,11 +208,18 @@ Here is a list of all the default variables for this role, which are also availa
 ## Installation options
 redis_version: 2.8.9
 redis_install_dir: /opt/redis
-redis_user: redis
-redis_group: "{{ redis_user }}"
 redis_dir: /var/lib/redis/{{ redis_port }}
 redis_download_url: "http://download.redis.io/releases/redis-{{ redis_version }}.tar.gz"
+# Set this to true to validate redis tarball checksum against vars/main.yml
+redis_verify_checksum: false
+# Set this value to a local path of a tarball to use for installation instead of downloading
 redis_tarball: false
+# Set this to true to build 32-bit binaries of Redis
+redis_make_32bit: false
+
+redis_user: redis
+redis_group: "{{ redis_user }}"
+
 # The open file limit for Redis/Sentinel
 redis_nofile_limit: 16384
 
@@ -182,6 +230,8 @@ redis_nofile_limit: 16384
 redis_as_service: true
 # Add local facts to /etc/ansible/facts.d for Redis
 redis_local_facts: true
+# Service name
+redis_service_name: "redis_{{ redis_port }}"
 
 ## Networking/connection options
 redis_bind: 0.0.0.0
@@ -206,15 +256,15 @@ redis_slave_priority: 100
 redis_repl_backlog_size: false
 
 ## Logging
-redis_logfile: '""'                                                             
-# Enable syslog. "yes" or "no"                                                  
-redis_syslog_enabled: "yes"                                                     
-redis_syslog_ident: redis_{{ redis_port }}                                      
-# Syslog facility. Must be USER or LOCAL0-LOCAL7                                
-redis_syslog_facility: USER   
+redis_logfile: '""'
+# Enable syslog. "yes" or "no"
+redis_syslog_enabled: "yes"
+redis_syslog_ident: "{{ redis_service_name }}"
+# Syslog facility. Must be USER or LOCAL0-LOCAL7
+redis_syslog_facility: USER
 
 ## General configuration
-redis_daemonize: "yes"                                                          
+redis_daemonize: "yes"
 redis_pidfile: /var/run/redis/{{ redis_port }}.pid
 # Number of databases to allow
 redis_databases: 16

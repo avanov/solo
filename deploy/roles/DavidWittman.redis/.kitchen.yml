@@ -18,8 +18,11 @@ platforms:
   - name: centos-7.2
     driver_config:
       box: wittman/centos-7.2-ansible
+  - name: ubuntu-16.04
 
 suites:
   - name: default
   - name: logfile
   - name: sentinel
+  - name: checksum
+  - name: service-name

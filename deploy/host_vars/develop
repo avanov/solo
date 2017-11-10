@@ -1,5 +1,5 @@
 ---
-ansible_ssh_host: 192.168.30.101
+ansible_host: 192.168.30.101
 
 deployment_type: develop
 deployment_server_name: localhost
@@ -12,7 +12,7 @@ project_frontend_files_dir: "{{ project_home_path }}/frontend"
 project_media_dir: "{{ project_home_path }}/media"
 project_temporary_files_dir: "{{ project_home_path }}/tmp/"
 
-instance_owner: "{{ ansible_ssh_user }}"
+instance_owner: "{{ ansible_user }}"
 instance_owner_home_path: "/home/{{ instance_owner }}"
 
 ssl_local_crt_file: ./ssl/insecure_ssl.crt

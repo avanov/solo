@@ -1,4 +1,4 @@
-aiohttp==2.0.6
+aiohttp==2.0.7
 aiohttp_session[aioredis]==0.8.0
 aiopg==0.13.0
 hiredis==0.2.0

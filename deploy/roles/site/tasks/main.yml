@@ -1,3 +1,3 @@
 ---
-- include: develop.yml
+- include_tasks: develop.yml
   when: deployment_type == 'develop'
