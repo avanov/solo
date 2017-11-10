@@ -1,11 +1,11 @@
 aiohttp==2.0.7
 aiohttp_session[aioredis]==0.8.0
-aiopg==0.13.0
+aiopg==0.13.1
 hiredis==0.2.0
 aioredis==0.3.0
-psycopg2==2.7.1
-sqlalchemy==1.1.9
-alembic==0.9.1
+psycopg2==2.7.3.2
+sqlalchemy==1.1.15
+alembic==0.9.6
 pyyaml==3.12
 ramlfications==0.1.9
-venusian==1.0
+venusian==1.1.0
