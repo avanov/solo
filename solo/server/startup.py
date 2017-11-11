@@ -8,6 +8,7 @@ from aiohttp_session.redis_storage import RedisStorage
 
 from solo import Configurator
 from solo.configurator import ApplicationManager
+from solo.configurator.exceptions import ConfigurationError
 from solo.configurator.url import complete_route_pattern
 from solo.configurator.view import PredicatedHandler
 from solo.server import db
@@ -36,8 +37,12 @@ async def init_webapp(loop: asyncio.AbstractEventLoop,
 
     # Setup database connection pool
     # ------------------------------
-    engine = await db.setup_database(loop, config)
-    setattr(webapp, 'dbengine', engine)
+    try:
+        engine = await db.setup_database(loop, config)
+    except ConfigurationError as e:
+        log.warning(f"{e}: you won't be able to use PostgresSQL in this instance.")
+    else:
+        setattr(webapp, 'dbengine', engine)
 
     # Setup memory store
     # ------------------

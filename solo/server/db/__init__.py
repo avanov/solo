@@ -3,6 +3,8 @@ import logging
 from typing import Dict, Any
 import aiopg.sa
 
+from solo.configurator.exceptions import ConfigurationError
+
 
 log = logging.getLogger(__name__)
 
@@ -13,7 +15,11 @@ async def setup_database(loop: asyncio.AbstractEventLoop,
     built-in connection pool.
     """
     log.debug('Establishing connection with PostgreSQL...')
-    dbconf = config['postgresql']
+    try:
+        dbconf = config['postgresql']
+    except KeyError:
+        raise ConfigurationError('PostgreSQL configuration is not provided')
+
     dsn = "dbname={dbname} user={user} password={password} host={host} port={port}".format(
         user=dbconf['user'],
         password=dbconf['password'],
