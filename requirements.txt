@@ -9,3 +9,4 @@ alembic==0.9.6
 pyyaml==3.12
 ramlfications==0.1.9
 venusian==1.1.0
+uvloop==0.8.1

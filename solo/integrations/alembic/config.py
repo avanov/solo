@@ -55,7 +55,7 @@ def collect_metadata(solo_cfg: Dict[str, Any]):
     from solo.server.model import metadata
 
     loop = asyncio.get_event_loop()
-    loop.set_debug(enabled=solo_cfg['debug'])
+    loop.set_debug(solo_cfg['debug'])
     with loop.run_until_complete(init_webapp(loop, solo_cfg)) as app:
         pass
     return metadata

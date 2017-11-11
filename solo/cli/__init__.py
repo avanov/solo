@@ -19,7 +19,7 @@ def run_cmd(args: argparse.Namespace, solo_cfg: Dict[str, Any]):
     """
     log = logging.getLogger('solo')
     loop = asyncio.get_event_loop()
-    loop.set_debug(enabled=solo_cfg['debug'])
+    loop.set_debug(solo_cfg['debug'])
 
     with loop.run_until_complete(init_webapp(loop, solo_cfg)) as app:
         app.create_server()
@@ -58,12 +58,16 @@ def main(args=None, stdout=None):
     # ----------------
     _add_common_arguments(subparsers)
 
-    # Parse and run
-    # ---------------------------
+    # Parse arguments and config
+    # --------------------------
     if args is None:
         args = sys.argv[1:]
     args = parser.parse_args(args)
     solo_cfg = parse_app_config(args.solocfg)
+
+    # Set up and run
+    # --------------
+    decide_event_loop_policy(solo_cfg)
     logging.config.dictConfig(solo_cfg['logging'])
     args.func(args, solo_cfg)
 
@@ -87,3 +91,11 @@ def _add_common_arguments(subparsers: argparse._SubParsersAction):
                 _add_common_arguments(action)
         else:
             sp.add_argument("--solocfg", default='solocfg.yml', help="path to a YAML config (default ./solocfg.yml).")
+
+
+def decide_event_loop_policy(solo_cfg) -> None:
+    """ Select and set event loop implementation.
+    """
+    if solo_cfg['server'].get('event_loop', 'asyncio') == 'uvloop':
+        import uvloop
+        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
