@@ -2,7 +2,7 @@ import json
 from typing import Dict, Any
 
 from aiohttp.web import Request, Response, Application
-from solo.server.response import _response_jsonapi, _response_json
+from solo.server.response import _response_jsonapi, response_json
 
 
 json_encode = json.dumps
@@ -21,7 +21,7 @@ class JsonRendererFactory:
         self.name = name
 
     def __call__(self, request: Request, view_response: Dict[str, Any]) -> Response:
-        return _response_json(200, view_response)
+        return response_json(200, view_response)
 
 
 class StringRendererFactory(object):

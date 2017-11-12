@@ -32,7 +32,7 @@ def _response_jsonapi(status: int, data: JsonApiPayload) -> Response:
                     charset='utf-8')
 
 
-def _response_json(status: int, data: JsonApiPayload) -> Response:
+def response_json(status: int, data: JsonApiPayload) -> Response:
     """ Generate a simple JSON response format:
     """
     return Response(status=status,
