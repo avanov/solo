@@ -154,8 +154,8 @@ class Configurator:
                 continue
             if not res.method:
                 continue
-            pattern, rules = normalize_route_pattern(res.path)
-            self.router.add_route(name=pattern, pattern=pattern, rules=rules)
+            name, pattern, rules = normalize_route_pattern(res.path)
+            self.router.add_route(name=name, pattern=pattern, rules=rules)
             processed.add(res.name)
 
     def scan(self, package=None, categories=None, onerror=None, ignore=None):

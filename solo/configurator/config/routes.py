@@ -50,7 +50,7 @@ class RoutesConfigurator:
             name=name,
             namespace=self.namespace
         ))
-        aiohttp_name = pattern.replace('/', '_').replace('{', '_').replace('}', '_')
+        aiohttp_name = name.replace('/', '_').replace('{', '_').replace('}', '_')
         self.routes[self.namespace][name] = Route(name=name,
                                                   pattern=pattern,
                                                   rules=rules,

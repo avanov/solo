@@ -63,9 +63,10 @@ extract_pattern = lambda line: _extract_braces_expression(
 )
 
 
-def normalize_route_pattern(pattern: str) -> Tuple[str, Dict[str, SumType]]:
+def normalize_route_pattern(pattern: str) -> Tuple[str, str, Dict[str, SumType]]:
     buf = []
     rules = {}
+    name_parts = {}
     while pattern:
         result = extract_pattern(pattern)
         if result:
@@ -80,6 +81,7 @@ def normalize_route_pattern(pattern: str) -> Tuple[str, Dict[str, SumType]]:
                     url_part = '{{{}}}'.format(pattern_name)
                 else:
                     url_part = extracted
+                    name_parts[extracted] = pattern_name
             else:
                 url_part = extracted
 
@@ -90,8 +92,11 @@ def normalize_route_pattern(pattern: str) -> Tuple[str, Dict[str, SumType]]:
         pattern = pattern[1:]
 
     # Parsing is done. Now join everything together
-    buf = ''.join(buf)
-    return buf, rules
+    final_pattern = ''.join(buf)
+    route_name = final_pattern
+    for pattern, name in name_parts.items():
+        route_name = route_name.replace(pattern, '{%s}' % name, 1)
+    return route_name, final_pattern, rules
 
 
 def complete_route_pattern(pattern: str, rules: Dict[str, SumType]) -> str:
