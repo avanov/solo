@@ -1,10 +1,11 @@
 import asyncio
 from typing import Dict, Any
 import aioredis
+from aioredis.abc import AbcPool
 
 
 async def init_pool(loop: asyncio.AbstractEventLoop,
-                    config: Dict[str, Any]) -> aioredis.RedisPool:
+                    config: Dict[str, Any]) -> AbcPool:
     c = config['redis']
     address = (c['host'], c['port'])
     pool = await aioredis.create_pool(address=address,

@@ -79,9 +79,9 @@ class RoutesConfigurator:
                             namespace=namespace
                         )
                     )
-    def url(self, name: str, *args, **kwargs):
+    def url_for(self, name: str, *args, **kwargs):
         aiohttp_name = self.routes_aiohttp_mapping[name]
-        return self.app.router[aiohttp_name].url(*args, **kwargs)
+        return self.app.router[aiohttp_name].url_for(*args, **kwargs)
 
 
 class ViewMeta:

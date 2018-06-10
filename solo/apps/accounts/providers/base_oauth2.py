@@ -65,7 +65,7 @@ class OAuth2Provider:
         """
         session = await get_session(request)
         session_state = session.pop('oauth.state', None)
-        request_state = request.GET.get('state')
+        request_state = request.query.get('state')
         if not session_state or session_state != request_state:
             raise CSRFError(
                     'State mismatch. Requested: {request_state}. Actual: {session_state}'.format(
@@ -73,10 +73,10 @@ class OAuth2Provider:
                             session_state=session_state
                     )
             )
-        code = request.GET.get('code')
+        code = request.query.get('code')
         if not code:
-            reason = request.GET.get('error', 'n/a')
-            error_description = request.GET.get('error_description', '(no description)')
+            reason = request.query.get('error', 'n/a')
+            error_description = request.query.get('error_description', '(no description)')
             raise AuthorizationError("Authorization code was not provided. Reason: {} {}".format(reason, error_description),
                                      reason=reason, provider=self)
         return (session_state, code)

@@ -1,6 +1,6 @@
-from . import importer
+from . import import_hooks
 
-importer.install()
+import_hooks.activate()
 
 from .configurator import Configurator
 from .configurator import http_defaults

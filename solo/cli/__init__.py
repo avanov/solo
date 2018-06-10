@@ -23,7 +23,8 @@ def run_cmd(args: argparse.Namespace, solo_cfg: Dict[str, Any]):
 
     with loop.run_until_complete(init_webapp(loop, solo_cfg)) as app:
         app.create_server()
-        log.debug('Serving on {}'.format(app.server.sockets[0].getsockname()))
+        socket_name = app.server.sockets[0].getsockname()
+        log.debug(f'Serving on {socket_name}')
         try:
             loop.run_forever()
         except KeyboardInterrupt:

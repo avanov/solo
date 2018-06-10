@@ -10,6 +10,9 @@ import sys
 import struct
 from typing import Optional, Sequence
 
+from .hooks import apply_transformers
+
+
 PY37 = sys.version_info >= (3, 7)
 
 
@@ -54,6 +57,9 @@ class MyLoader(SourceFileLoader):
         spec = module.__spec__
         with Path(spec.origin).open('rb') as f:
             source_ast = ast.parse(f.read(), spec.origin)
+
+        source_ast = apply_transformers(source_ast)
+
         try:
             code = compile(source_ast, spec.origin, "exec")
         except (SyntaxError, ValueError):
@@ -77,5 +83,5 @@ class MyImporter(PathFinder):
         return spec
 
 
-def install():
+def activate():
     sys.meta_path.insert(0, MyImporter)
