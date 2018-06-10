@@ -1,3 +1,7 @@
+from . import importer
+
+importer.install()
+
 from .configurator import Configurator
 from .configurator import http_defaults
 from .configurator import http_endpoint
