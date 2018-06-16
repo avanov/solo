@@ -5,34 +5,14 @@ import asyncio
 import logging
 import logging.config
 import sys
-from typing import Dict, Any
 
 from pkg_resources import get_distribution
 
+from solo.cli import typeit
+from solo.cli import run
 from solo.integrations.alembic import integrate_alembic_cli
-from solo.server.startup import init_webapp
+from solo.server.config import Config
 from .util import parse_app_config
-
-
-def run_cmd(args: argparse.Namespace, solo_cfg: Dict[str, Any]):
-    """ Run project instance.
-    """
-    log = logging.getLogger('solo')
-    loop = asyncio.get_event_loop()
-    loop.set_debug(solo_cfg['debug'])
-
-    with loop.run_until_complete(init_webapp(loop, solo_cfg)) as app:
-        app.create_server()
-        socket_name = app.server.sockets[0].getsockname()
-        log.debug(f'Serving on {socket_name}')
-        try:
-            loop.run_forever()
-        except KeyboardInterrupt:
-            log.debug('[SIGINT] A command to shut down the server has been received...')
-
-    loop.close()
-    log.debug('Done.')
-    sys.exit(0)
 
 
 def main(args=None, stdout=None):
@@ -48,8 +28,11 @@ def main(args=None, stdout=None):
 
     # $ solo run <config>
     # ---------------------------
-    run = subparsers.add_parser('run', help='Run solo application')
-    run.set_defaults(func=run_cmd)
+    run.setup(subparsers)
+
+    # $ solo typeit <file>
+    # ---------------------------
+    typeit.setup(subparsers)
 
     # $ solo db [args]
     # ---------------------------
@@ -69,7 +52,7 @@ def main(args=None, stdout=None):
     # Set up and run
     # --------------
     decide_event_loop_policy(solo_cfg)
-    logging.config.dictConfig(solo_cfg['logging'])
+    logging.config.dictConfig(solo_cfg.logging)
     args.func(args, solo_cfg)
 
 
@@ -94,9 +77,9 @@ def _add_common_arguments(subparsers: argparse._SubParsersAction):
             sp.add_argument("--solocfg", default='solocfg.yml', help="path to a YAML config (default ./solocfg.yml).")
 
 
-def decide_event_loop_policy(solo_cfg) -> None:
+def decide_event_loop_policy(solo_cfg: Config) -> None:
     """ Select and set event loop implementation.
     """
-    if solo_cfg['server'].get('event_loop', 'asyncio') == 'uvloop':
+    if solo_cfg.server.get('event_loop', 'asyncio') == 'uvloop':
         import uvloop
         asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())

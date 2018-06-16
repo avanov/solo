@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Dict, Any
+from typing import NamedTuple, Dict
 
 import aiohttp_session
 from aiohttp import web
@@ -13,19 +13,25 @@ from solo.configurator.url import complete_route_pattern
 from solo.configurator.view import PredicatedHandler
 from solo.server import db
 from solo.server import memstore
+from solo.server.config import Config
 
 
 log = logging.getLogger(__name__)
 
+class Registry(NamedTuple):
+    config: Config
+    settings: Dict = {}
+
 
 async def init_webapp(loop: asyncio.AbstractEventLoop,
-                      config: Dict[str, Any]) -> ApplicationManager:
+                      config: Config) -> ApplicationManager:
     webapp = web.Application(loop=loop,
-                             debug=config['debug'])
+                             debug=config.debug)
 
-    configurator = Configurator(webapp, registry={'config': config})
+    registry = Registry(config=config)
+    configurator = Configurator(webapp, registry=registry)
 
-    for app in config['apps']:
+    for app in config.apps:
         log.debug("------- Setting up {} -------".format(app['name']))
         configurator.include(app['name'], app['url_prefix'])
         configurator.scan(package=app['name'], ignore=['.__pycache__', '{}.migrations'.format(app['name'])])
@@ -52,9 +58,9 @@ async def init_webapp(loop: asyncio.AbstractEventLoop,
     # Setup sessions middleware
     # -------------------------
     aiohttp_session.setup(webapp, RedisStorage(memstore_pool,
-                                               cookie_name=config['session']['cookie_name'],
-                                               secure=config['session']['cookie_secure'],
-                                               httponly=config['session']['cookie_httponly']))
+                                               cookie_name=config.session['cookie_name'],
+                                               secure=config.session['cookie_secure'],
+                                               httponly=config.session['cookie_httponly']))
 
     return configurator.final_application()
 

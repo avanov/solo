@@ -1,5 +1,6 @@
 from pathlib import Path
-from typing import Dict, Any
+
+from solo.server.config import Config
 
 import yaml
 
@@ -15,9 +16,12 @@ DEFAULT_CONFIG = {
 }
 
 
-def parse_app_config(path: str) -> Dict[str, Any]:
+def parse_app_config(path: str) -> Config:
     new_conf = DEFAULT_CONFIG.copy()
-    with Path(path).open() as f:
-        config = yaml.load(f.read())
-        new_conf.update(config)
-        return new_conf
+    try:
+        with Path(path).open() as f:
+            config = yaml.load(f.read())
+            new_conf.update(config)
+            return Config(**new_conf)
+    except FileNotFoundError:
+        return Config()

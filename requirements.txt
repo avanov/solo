@@ -10,3 +10,5 @@ pyyaml==3.12
 ramlfications==0.1.9
 venusian==1.1.0
 uvloop==0.10.1
+# for the parser
+inflection==0.3.1

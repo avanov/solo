@@ -17,7 +17,7 @@ class BackendAuthenticationHandler:
 
     @http_endpoint(request_method='POST')
     async def init_authentication(self) -> web.Response:
-        provider = self.request.app['solo.apps.accounts'][self.context['provider'].value]
+        provider = self.request.app['settings']['solo.apps.accounts'][self.context['provider'].value]
         url = await provider.authorize(self.request)
         return HTTPFound(location=url)
 
@@ -32,11 +32,10 @@ class BackendAuthenticationCallbackHandler:
     @http_endpoint(request_method='GET')
     async def process_callback(self) -> web.Response:
         """
-
         """
         request = self.request
         app = request.app
-        provider = app['solo.apps.accounts'][self.context['provider'].value]
+        provider = app['settings']['solo.apps.accounts'][self.context['provider'].value]
         auth_service = AuthService(app)
 
         integration = await provider.callback(request)

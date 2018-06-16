@@ -13,13 +13,12 @@ def enable_provider(config: Configurator,
                     scope: List[str]):
     log.debug('Enabling authentication provider: {}'.format(name.upper()))
     provider = AuthProvider.match(name)
-    auth_registry = config.registry.setdefault('solo.apps.accounts', {})
+    auth_registry = config.registry.settings.setdefault('solo.apps.accounts', {})
     redirect_uri = '{}{}'.format(
-        config.registry['config']['server']['public_uri'].rstrip('/'),
+        config.registry.config.server['public_uri'].rstrip('/'),
         config.router.url_for('solo.apps.accounts:/login/{provider}/callback',
                               provider=provider.value)
     )
-    print(redirect_uri)
     provider_impl = provider['auth_provider_impl']
     auth_registry[name] = provider_impl(client_id=client_id,
                                         client_secret=client_secret,

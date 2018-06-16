@@ -4,19 +4,20 @@ from typing import Dict, Any
 import aiopg.sa
 
 from solo.configurator.exceptions import ConfigurationError
+from solo.server.config import Config
 
 
 log = logging.getLogger(__name__)
 
 
 async def setup_database(loop: asyncio.AbstractEventLoop,
-                         config: Dict[str, Any]) -> aiopg.sa.Engine:
+                         config: Config) -> aiopg.sa.Engine:
     """ Configure and return sqlalchemy's Engine instance with a
     built-in connection pool.
     """
     log.debug('Establishing connection with PostgreSQL...')
     try:
-        dbconf = config['postgresql']
+        dbconf = config.postgresql
     except KeyError:
         raise ConfigurationError('PostgreSQL configuration is not provided')
 
@@ -31,5 +32,5 @@ async def setup_database(loop: asyncio.AbstractEventLoop,
                                           minsize=dbconf['min_connections'],
                                           maxsize=dbconf['max_connections'],
                                           loop=loop,
-                                          echo=config['debug'])
+                                          echo=config.debug)
     return engine
