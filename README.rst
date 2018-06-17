@@ -18,10 +18,6 @@
     :target: https://pypi.python.org/pypi/solo
     :alt: Latest PyPI Release
 
-.. image:: http://img.shields.io/pypi/dm/solo.svg
-    :target: https://pypi.python.org/pypi/solo
-    :alt: Monthly PyPI downloads
-
 
 **Development status: Early Alpha**
 
