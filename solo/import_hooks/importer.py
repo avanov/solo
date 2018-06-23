@@ -76,6 +76,8 @@ class MyImporter(PathFinder):
             # delegate to default importers
             return None
         spec = super(MyImporter, cls).find_spec(fullname, path, target)
+        if spec is None:
+            return None
         orig_loader = spec.loader
         new_loader = MyLoader(fullname=orig_loader.name,
                               path=orig_loader.path)

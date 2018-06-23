@@ -32,11 +32,11 @@ async def init_webapp(loop: asyncio.AbstractEventLoop,
     configurator = Configurator(webapp, registry=registry)
 
     for app in config.apps:
-        log.debug("------- Setting up {} -------".format(app['name']))
-        configurator.include(app['name'], app['url_prefix'])
-        configurator.scan(package=app['name'], ignore=['.__pycache__', '{}.migrations'.format(app['name'])])
-        webapp = register_routes(app['name'], webapp, configurator)
-        for setup_step in app.get('setup', []):
+        log.debug("------- Setting up {} -------".format(app.name))
+        configurator.include(app.name, app.url_prefix)
+        configurator.scan(package=app.name, ignore=['.__pycache__', f'{app.name}.migrations'])
+        webapp = register_routes(app.name, webapp, configurator)
+        for setup_step in app.setup:
             directive, kw = list(setup_step.items())[0]
             getattr(configurator, directive)(**kw)
 
@@ -58,9 +58,9 @@ async def init_webapp(loop: asyncio.AbstractEventLoop,
     # Setup sessions middleware
     # -------------------------
     aiohttp_session.setup(webapp, RedisStorage(memstore_pool,
-                                               cookie_name=config.session['cookie_name'],
-                                               secure=config.session['cookie_secure'],
-                                               httponly=config.session['cookie_httponly']))
+                                               cookie_name=config.session.cookie_name,
+                                               secure=config.session.cookie_secure,
+                                               httponly=config.session.cookie_httponly))
 
     return configurator.final_application()
 

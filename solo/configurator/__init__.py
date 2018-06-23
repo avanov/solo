@@ -11,6 +11,7 @@ from aiohttp.web import Application
 import ramlfications as raml
 import venusian
 
+from ..server.config import Config
 from .util import maybe_dotted
 from .config.rendering import BUILTIN_RENDERERS
 from .config.rendering import RenderingConfigurator
@@ -30,10 +31,14 @@ log = logging.getLogger(__name__)
 
 
 class ApplicationManager:
-    def __init__(self, app: Application):
+    def __init__(self, app: Application) -> None:
         self.app = app
+        self.config: Config = app['config']
         self.loop = app.loop
-        self.handler = app.make_handler(debug=app['config'].debug, keep_alive_on=app['config'].server['keep_alive'])
+        self.handler = app.make_handler(
+            debug=self.config.debug,
+            keep_alive_on=self.config.server.keep_alive
+        )
         self.server = None
 
     def create_server(self, host: Optional[str] = None, port: Optional[int] = None, ssl: Optional[bool] = None):
@@ -43,11 +48,10 @@ class ApplicationManager:
     def create_server_future(self, host: Optional[str] = None, port: Optional[int] = None, ssl: Optional[bool] = None):
         """ Used in conftest
         """
-        config = self.app['config']
         if host is None:
-            host = config.server['host']
+            host = self.config.server.host
         if port is None:
-            port = config.server['port']
+            port = self.config.server.port
         return self.loop.create_server(self.handler, host, port, ssl=ssl)
 
     def __enter__(self):
@@ -89,7 +93,7 @@ class Configurator:
                  router_configurator=RoutesConfigurator,
                  views_configurator=ViewsConfigurator,
                  rendering_configurator=RenderingConfigurator,
-                 sum_types_configurator=SumTypesConfigurator):
+                 sum_types_configurator=SumTypesConfigurator) -> None:
         if route_prefix is None:
             route_prefix = ''
         if registry is None:

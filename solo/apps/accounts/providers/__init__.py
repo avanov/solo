@@ -15,7 +15,7 @@ def enable_provider(config: Configurator,
     provider = AuthProvider.match(name)
     auth_registry = config.registry.settings.setdefault('solo.apps.accounts', {})
     redirect_uri = '{}{}'.format(
-        config.registry.config.server['public_uri'].rstrip('/'),
+        config.registry.config.server.public_uri.rstrip('/'),
         config.router.url_for('solo.apps.accounts:/login/{provider}/callback',
                               provider=provider.value)
     )

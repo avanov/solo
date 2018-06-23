@@ -1,11 +1,54 @@
 from typing import NamedTuple, Dict, Sequence
+from typeit import type_constructor
+
+
+class AppConfig(NamedTuple):
+    name: str
+    url_prefix: str
+    setup: Sequence[Dict] = []
+
+
+class Session(NamedTuple):
+    cookie_name: str
+    cookie_secure: bool
+    cookie_httponly: bool
+
+
+class Redis(NamedTuple):
+    host: str = '127.0.0.1'
+    port: int =6379
+    db: int = 0
+    min_connections: int = 1
+    max_connections: int = 10
+
+
+class Postgresql(NamedTuple):
+    user: str
+    dbname: str
+    password: str
+    host: str = '127.0.0.1'
+    port: int = 5432
+    min_connections: int = 1
+    max_connections: int = 10
+
+
+class Server(NamedTuple):
+    public_uri: str = 'http://127.0.0.1:8000'
+    host: str = '127.0.0.1'
+    port: int = 8000
+    keep_alive: bool = True
+    # asyncio/uvloop
+    event_loop: str = 'asyncio'
 
 
 class Config(NamedTuple):
-    debug: bool = True
-    server: Dict = {}
-    session: Dict = {}
-    apps: Sequence[Dict] = []
+    server: Server
+    postgresql: Postgresql
+    redis: Redis
+    session: Session
+    apps: Sequence[AppConfig] = []
     logging: Dict = {'version': 1}
-    redis: Dict = {}
-    postgresql: Dict = {}
+    debug: bool = True
+
+
+MakeConfig = type_constructor(Config)

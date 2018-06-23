@@ -8,7 +8,6 @@ import sys
 
 from pkg_resources import get_distribution
 
-from solo.cli import typeit
 from solo.cli import run
 from solo.integrations.alembic import integrate_alembic_cli
 from solo.server.config import Config
@@ -29,10 +28,6 @@ def main(args=None, stdout=None):
     # $ solo run <config>
     # ---------------------------
     run.setup(subparsers)
-
-    # $ solo typeit <file>
-    # ---------------------------
-    typeit.setup(subparsers)
 
     # $ solo db [args]
     # ---------------------------
@@ -80,6 +75,6 @@ def _add_common_arguments(subparsers: argparse._SubParsersAction):
 def decide_event_loop_policy(solo_cfg: Config) -> None:
     """ Select and set event loop implementation.
     """
-    if solo_cfg.server.get('event_loop', 'asyncio') == 'uvloop':
+    if solo_cfg.server.event_loop == 'uvloop':
         import uvloop
         asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())

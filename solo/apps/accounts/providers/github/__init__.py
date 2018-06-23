@@ -7,7 +7,9 @@ from aiohttp.web import HTTPBadRequest
 
 from solo.apps.accounts.exceptions import ProviderServiceError, CSRFError
 from solo.apps.accounts.model import AuthProvider
-from .base_oauth2 import OAuth2Provider, ThirdPartyProfile, ProfileIntegration
+from solo.apps.accounts.providers.base_oauth2 import OAuth2Provider, ThirdPartyProfile, ProfileIntegration
+
+from .definitions import AuthenticatedUser, MakeAuthenticatedUser
 
 
 log = logging.getLogger(__name__)
@@ -46,7 +48,7 @@ class GithubProvider(OAuth2Provider):
             async with http.get(access_url) as r:
                 if r.status != 200:
                     content = await r.text()
-                    raise ProviderServiceError('Service responded with status {}: {}'.format(r.status, content))
+                    raise ProviderServiceError(f'Service responded with status {r.status}: {content}')
                 else:
                     content = await r.json()
                 access_token = content['access_token']
@@ -56,17 +58,17 @@ class GithubProvider(OAuth2Provider):
                 async with http.get(profile_url) as profile_r:
                     if profile_r.status != 200:
                         content = await profile_r.text()
-                        raise ProviderServiceError("Error during profile retrieval. Status {}: {}".format(
-                            profile_r.status,
-                            content
-                        ))
+                        raise ProviderServiceError(
+                            f"Error during profile retrieval. Status {profile_r.status}: {content}"
+                        )
                     else:
                         profile_data = await profile_r.json()
+                        profile_data: AuthenticatedUser = MakeAuthenticatedUser(profile_data)
 
-                    profile = ThirdPartyProfile(id=str(profile_data['id']),
-                                                display_name=profile_data.get('name', profile_data['login']),
+                    profile = ThirdPartyProfile(id=str(profile_data.id),
+                                                display_name=profile_data.name or profile_data.login,
                                                 # email might be non-verified
-                                                email=profile_data.get('email'))
+                                                email=profile_data.email)
 
                     return ProfileIntegration(provider=AuthProvider.GITHUB,
                                               access_token=access_token,

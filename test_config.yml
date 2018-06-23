@@ -5,6 +5,7 @@ server:
   port: 8000
   keep_alive: False
   public_uri: "http://127.0.0.1:4200"
+  event_loop: uvloop
 
 postgresql:
   host: 127.0.0.1
