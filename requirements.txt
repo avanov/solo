@@ -3,13 +3,13 @@ aiohttp_session[aioredis]==2.5.1
 aiopg==0.14.0
 hiredis==0.2.0
 aioredis==1.1.0
-psycopg2==2.7.4
-sqlalchemy==1.2.8
-alembic==0.9.9
+psycopg2==2.7.5
+sqlalchemy==1.2.9
+alembic==0.9.10
 pyyaml==3.12
 ramlfications==0.1.9
 venusian==1.1.0
-uvloop==0.10.1
+uvloop==0.10.2
 # for the parser
 inflection==0.3.1
 typeit==0.5.1

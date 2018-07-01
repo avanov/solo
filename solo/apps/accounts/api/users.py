@@ -47,7 +47,6 @@ class AccountDetailsHandler:
     def __init__(self, request: web.Request, context: Dict[str, Any]):
         self.request = request
         self.context = context
-        print(context)
 
     @http_endpoint(request_method='GET')
     async def get(self):
