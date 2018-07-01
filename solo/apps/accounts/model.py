@@ -1,4 +1,4 @@
-from typing import TypeVar, Set
+from typing import TypeVar, Set, Type
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSON
 
@@ -9,8 +9,11 @@ from solo.server.db.types import PythonMappedEnum
 
 
 class AuthProvider(SumType):
-    GITHUB = 'github'
-    FACEBOOK = 'facebook'
+    class Contract:
+        auth_provider_impl: Type
+
+    GITHUB: str = 'github'
+    FACEBOOK: str = 'facebook'
 
 
 class Guest:

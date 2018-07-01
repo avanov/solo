@@ -167,12 +167,12 @@ class Configurator:
             package = caller_package()
         package = maybe_dotted(package)
         log.debug('Scanning {}'.format(package))
-        scanner = self.venusian.Scanner(config=self)
-        previous_namespace = scanner.config.router.change_namespace(package.__name__)
+        scanner = self.venusian.Scanner(configurator=self)
+        previous_namespace = scanner.configurator.router.change_namespace(package.__name__)
         scanner.scan(package, categories=categories, onerror=onerror, ignore=ignore)
         self.router.check_routes_consistency(package)
         self.sums.check_sum_types_consistency(package)
-        scanner.config.router.change_namespace(previous_namespace)
+        scanner.configurator.router.change_namespace(previous_namespace)
         log.debug('End scanning {}'.format(package))
 
     def setup_configurator(self):

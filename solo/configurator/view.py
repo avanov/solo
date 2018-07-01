@@ -23,10 +23,10 @@ class http_endpoint:
         depth = settings.pop('_depth', 0)
 
         def callback(scanner, name, obj):
-            view_item = scanner.config.views.add_view(view=obj, **settings)
-            namespace = scanner.config.router.namespace
+            view_item = scanner.configurator.views.add_view(view=obj, **settings)
+            namespace = scanner.configurator.router.namespace
             try:
-                routes_namespace = scanner.config.router.routes[namespace]
+                routes_namespace = scanner.configurator.router.routes[namespace]
             except KeyError:
                 raise ConfigurationError("Namespace was not included: {}".format(namespace))
             try:
@@ -38,7 +38,7 @@ class http_endpoint:
                         namespace=namespace
                     )
                 )
-            renderer = scanner.config.rendering.get_renderer(view_item.renderer)
+            renderer = scanner.configurator.rendering.get_renderer(view_item.renderer)
             view_item.renderer = renderer
             route.view_metas.append(view_item)
 

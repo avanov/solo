@@ -12,4 +12,4 @@ venusian==1.1.0
 uvloop==0.10.1
 # for the parser
 inflection==0.3.1
-typeit==0.2.0
+typeit==0.5.1

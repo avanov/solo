@@ -19,7 +19,7 @@ def enable_provider(config: Configurator,
         config.router.url_for('solo.apps.accounts:/login/{provider}/callback',
                               provider=provider.value)
     )
-    provider_impl = provider['auth_provider_impl']
+    provider_impl = provider.Contract.auth_provider_impl
     auth_registry[name] = provider_impl(client_id=client_id,
                                         client_secret=client_secret,
                                         scope=scope,

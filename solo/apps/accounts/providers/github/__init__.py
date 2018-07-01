@@ -15,7 +15,7 @@ from .definitions import AuthenticatedUser, MakeAuthenticatedUser
 log = logging.getLogger(__name__)
 
 
-@AuthProvider.GITHUB(category='auth_provider_impl')
+@AuthProvider.GITHUB.bind(AuthProvider.Contract.auth_provider_impl)
 class GithubProvider(OAuth2Provider):
     """ Github OAuth2 provider.
 

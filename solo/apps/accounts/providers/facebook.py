@@ -12,7 +12,7 @@ from .base_oauth2 import OAuth2Provider, ThirdPartyProfile, ProfileIntegration
 log = logging.getLogger(__name__)
 
 
-@AuthProvider.FACEBOOK(category='auth_provider_impl')
+@AuthProvider.FACEBOOK.bind(AuthProvider.Contract.auth_provider_impl)
 class FacebookProvider(OAuth2Provider):
     """ Facebook OAuth2 provider.
 
