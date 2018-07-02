@@ -63,5 +63,5 @@ Test framework
 Run existing test suite with
 
 .. code::
-
-   (solo) vagrant@vagrant-ubuntu-*:/vagrant$ py.test
+   (solo) $ docker-compose up -d
+   (solo) $ py.test
