@@ -10,7 +10,7 @@ from pkg_resources import get_distribution
 
 from solo.cli import run
 from solo.integrations.alembic import integrate_alembic_cli
-from solo.server.config import Config
+from solo.server.config import Config, EventLoopType
 from .util import parse_app_config
 
 
@@ -75,6 +75,6 @@ def _add_common_arguments(subparsers: argparse._SubParsersAction):
 def decide_event_loop_policy(solo_cfg: Config) -> None:
     """ Select and set event loop implementation.
     """
-    if solo_cfg.server.event_loop == 'uvloop':
+    if solo_cfg.server.event_loop is EventLoopType.UVLOOP:
         import uvloop
         asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())

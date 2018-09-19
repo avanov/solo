@@ -13,7 +13,8 @@ def setup(subparsers):
     return sub
 
 
-def main(args: argparse.Namespace, solo_cfg: Config):
+def main(args: argparse.Namespace,
+         solo_cfg: Config) -> None:
     """ Run project instance.
     """
     log = logging.getLogger('solo')

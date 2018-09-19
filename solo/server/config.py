@@ -1,3 +1,5 @@
+from enum import Enum
+
 from typing import NamedTuple, Dict, Sequence
 from typeit import type_constructor
 
@@ -32,13 +34,18 @@ class Postgresql(NamedTuple):
     max_connections: int = 10
 
 
+class EventLoopType(Enum):
+    ASYNCIO = 'asyncio'
+    UVLOOP = 'uvloop'
+
+
 class Server(NamedTuple):
     public_uri: str = 'http://127.0.0.1:8000'
     host: str = '127.0.0.1'
     port: int = 8000
     keep_alive: bool = True
     # asyncio/uvloop
-    event_loop: str = 'asyncio'
+    event_loop: EventLoopType = EventLoopType.ASYNCIO
 
 
 class Config(NamedTuple):
