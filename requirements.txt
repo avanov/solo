@@ -1,15 +1,15 @@
-aiohttp==3.3.2
-aiohttp_session[aioredis]==2.5.1
+aiohttp==3.4.4
+aiohttp_session[aioredis]==2.6.0
 aiopg==0.15.0
 hiredis==0.2.0
 aioredis==1.1.0
 psycopg2==2.7.5
-sqlalchemy==1.2.11
+sqlalchemy==1.2.12
 alembic==1.0.0
 pyyaml==3.13
 ramlfications==0.1.9
 venusian==1.1.0
-uvloop==0.10.2
+uvloop==0.11.2
 # for the parser
 inflection==0.3.1
 typeit==0.5.2
