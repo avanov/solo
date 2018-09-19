@@ -3,6 +3,9 @@
 .. image:: https://travis-ci.org/avanov/solo.svg?branch=develop
     :target: https://travis-ci.org/avanov/solo
 
+.. image:: https://circleci.com/gh/avanov/solo/tree/develop.svg?style=svg
+    :target: https://circleci.com/gh/avanov/solo/tree/develop
+
 .. image:: https://coveralls.io/repos/github/avanov/solo/badge.svg?branch=develop
     :target: https://coveralls.io/github/avanov/solo?branch=develop
 
