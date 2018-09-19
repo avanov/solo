@@ -1,5 +1,6 @@
 ---
-sudo: false
+dist: xenial
+sudo: true
 language: python
 cache: pip
 services:
