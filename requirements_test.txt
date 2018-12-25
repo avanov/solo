@@ -1,5 +1,5 @@
-pytest==3.6.2
+pytest==4.0.2
 pytest-aiohttp==0.3.0
-coverage==4.5.1
-pytest-cov==2.5.1
-mypy==0.610
+coverage==4.5.2
+pytest-cov==2.6.0
+mypy==0.650

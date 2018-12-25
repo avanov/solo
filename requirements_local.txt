@@ -1,3 +1,4 @@
-Sphinx==1.7.5
-invoke==1.0.0
-wheel==0.31.1
+Sphinx==1.8.3
+invoke==1.2.0
+wheel==0.32.3
+piprot==0.9.10
