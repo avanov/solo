@@ -18,7 +18,7 @@ class Session(NamedTuple):
 
 class Redis(NamedTuple):
     host: str = '127.0.0.1'
-    port: int =6379
+    port: int = 6379
     db: int = 0
     min_connections: int = 1
     max_connections: int = 10
@@ -58,4 +58,4 @@ class Config(NamedTuple):
     debug: bool = True
 
 
-MakeConfig = type_constructor(Config)
+MakeConfig, serializer = type_constructor(Config)
