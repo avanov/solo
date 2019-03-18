@@ -66,5 +66,5 @@ Test framework
 Run existing test suite with
 
 .. code::
-   (solo) $ docker-compose up -d
+   (solo) $ docker-compose -f env/dev/docker-compose.yml up -d
    (solo) $ py.test
