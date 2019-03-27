@@ -4,7 +4,7 @@ import logging
 import sys
 
 from solo import init_webapp
-from solo.server.config import Config
+from solo.config.app import Config
 
 
 def setup(subparsers):

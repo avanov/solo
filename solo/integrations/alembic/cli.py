@@ -130,7 +130,7 @@ ALEMBIC_POS_OPTS = {  # Copied from alembic.config.CommandLine
 }
 
 
-def integrate_alembic_cli(parent_cli: argparse._SubParsersAction, prefix: str = 'db'):
+def integrate_alembic_cli(parent_cli: argparse._SubParsersAction, prefix: str = 'db') -> None:
     """
     """
     db = parent_cli.add_parser(prefix, help='Database commands integrated with Alembic CLI')

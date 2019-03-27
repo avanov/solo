@@ -63,8 +63,9 @@ You can terminate the server by sending it a SIGINT (Ctrl-C from an interactive 
 Test framework
 --------------
 
-Run existing test suite with
+You will need docker to run test instances of Postgres and Redis.
+
+Run existing test suite with:
 
 .. code::
-   (solo) $ docker-compose -f env/dev/docker-compose.yml up -d
    (solo) $ py.test

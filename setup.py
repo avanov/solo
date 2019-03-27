@@ -1,16 +1,14 @@
-import os
-
 from pathlib import Path
 from setuptools import setup
 from setuptools import find_packages
 
 
-here = Path(os.path.abspath(os.path.dirname(__file__)))
+HERE = Path(__file__).absolute().parent
 
-with here.joinpath('README.rst').open() as f:
+with (HERE / 'README.rst').open() as f:
     README = f.read()
 
-with here.joinpath('requirements.txt').open() as f:
+with (HERE / 'requirements' / 'minimal.txt').open() as f:
     rows = f.read().strip().split('\n')
     requires = []
     for row in rows:

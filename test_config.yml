@@ -40,6 +40,10 @@ apps:
             - "user:email"
             - public_repo
 
+testing:
+  docker_pull: true
+
+
 logging:
   version: 1
   formatters:

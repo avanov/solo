@@ -11,30 +11,22 @@ jobs:
       # specify the version you desire here
       # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
       - image: python:3.7.0-alpine3.8
-        environment:
-          RAILS_ENV: test
-          PGHOST: 127.0.0.1
-          PGUSER: solo
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
       # documented at https://circleci.com/docs/2.0/circleci-images/
-      - image: postgres:10.5-alpine
-        environment:
-          POSTGRES_USER: solo
-          POSTGRES_DB: solo
-
-      - image: redis:5.0-rc5-alpine
 
     steps:
       - checkout
+      # https://circleci.com/docs/2.0/building-docker-images/#overview
+      - setup_remote_docker
 
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}
-          - v1-dependencies-{{ checksum "requirements_local.txt" }}
-          - v1-dependencies-{{ checksum "requirements_test.txt" }}
+          - v1-dependencies-{{ checksum "requirements/minimal.txt" }}
+          - v1-dependencies-{{ checksum "requirements/local.txt" }}
+          - v1-dependencies-{{ checksum "requirements/test.txt" }}
 
       - run:
           name: install dependencies
@@ -44,14 +36,14 @@ jobs:
             apk update
             apk add --virtual build-deps gcc make python-dev musl-dev
             apk add postgresql-dev
-            pip install -r ./requirements.txt
-            pip install -r ./requirements_test.txt
+            pip install -r ./requirements/minimal.txt
+            pip install -r ./requirements/test.txt
             pip install coveralls
 
       - save_cache:
           paths:
             - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
+          key: v1-dependencies-{{ checksum "requirements/minimal.txt" }}
 
       # run tests!
       # this example uses Django's built-in test-runner

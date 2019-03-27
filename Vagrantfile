@@ -125,8 +125,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       #   chef.validation_client_name = "ORGNAME-validator"
 
     config.vm.provision :ansible do |ansible|
-        ansible.playbook = "deploy/develop.yml"
-        ansible.inventory_path = "deploy/hosts"
+        ansible.playbook = "env/dev/deploy/develop.yml"
+        ansible.inventory_path = "env/dev/deploy/hosts"
         # additional "vv" and "vvv" options are available
         ansible.verbose = "v"
     end

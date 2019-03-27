@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from typing import NamedTuple, Dict
 
 import aiohttp_session
 from aiohttp import web
@@ -9,18 +8,15 @@ from aiohttp_session.redis_storage import RedisStorage
 from solo import Configurator
 from solo.configurator import ApplicationManager
 from solo.configurator.exceptions import ConfigurationError
+from solo.configurator.registry import Registry
 from solo.configurator.url import complete_route_pattern
 from solo.configurator.view import PredicatedHandler
 from solo.server import db
 from solo.server import memstore
-from solo.server.config import Config
+from solo.config.app import Config
 
 
 log = logging.getLogger(__name__)
-
-class Registry(NamedTuple):
-    config: Config
-    settings: Dict = {}
 
 
 async def init_webapp(loop: asyncio.AbstractEventLoop,
@@ -28,8 +24,7 @@ async def init_webapp(loop: asyncio.AbstractEventLoop,
     webapp = web.Application(loop=loop,
                              debug=config.debug)
 
-    registry = Registry(config=config)
-    configurator = Configurator(webapp, registry=registry)
+    configurator = Configurator(webapp, config=config)
 
     for app in config.apps:
         log.debug("------- Setting up {} -------".format(app.name))
@@ -71,7 +66,7 @@ def register_routes(namespace: str, webapp: web.Application, configurator: Confi
     # Setup routes
     # ------------
     application_routes = configurator.router.routes[namespace]
-    for route in application_routes.values():  # type: Route
+    for route in application_routes.values():
         handler = PredicatedHandler(route.rules, route.view_metas)
         guarded_route_pattern = complete_route_pattern(route.pattern, route.rules)
         log.debug('Binding route {} to the handler named {} in the namespace {}.'.format(

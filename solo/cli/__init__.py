@@ -5,12 +5,13 @@ import asyncio
 import logging
 import logging.config
 import sys
+from pathlib import Path
 
 from pkg_resources import get_distribution
 
-from solo.cli import run
+from . import commands
 from solo.integrations.alembic import integrate_alembic_cli
-from solo.server.config import Config, EventLoopType
+from solo.config.app import Config, EventLoopType
 from .util import parse_app_config
 
 
@@ -27,11 +28,11 @@ def main(args=None, stdout=None):
 
     # $ solo run <config>
     # ---------------------------
-    run.setup(subparsers)
+    commands.run.setup(subparsers)
 
     # $ solo db [args]
     # ---------------------------
-    integrate_alembic_cli(subparsers)
+    integrate_alembic_cli(subparsers, prefix='db')
 
     # Common arguments
     # ----------------
@@ -42,7 +43,7 @@ def main(args=None, stdout=None):
     if args is None:
         args = sys.argv[1:]
     args = parser.parse_args(args)
-    solo_cfg = parse_app_config(args.solocfg)
+    solo_cfg = parse_app_config(Path(args.solocfg))
 
     # Set up and run
     # --------------

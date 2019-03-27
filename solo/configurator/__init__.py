@@ -11,7 +11,8 @@ from aiohttp.web import Application
 import ramlfications as raml
 import venusian
 
-from ..server.config import Config
+from solo.server.csrf import SessionCSRFStoragePolicy
+from ..config.app import Config
 from .util import maybe_dotted
 from .config.rendering import BUILTIN_RENDERERS
 from .config.rendering import RenderingConfigurator
@@ -19,6 +20,7 @@ from .config.routes import RoutesConfigurator
 from .config.views import ViewsConfigurator
 from .config.sums import SumTypesConfigurator
 from .exceptions import ConfigurationError
+from .registry import Registry
 from .path import caller_package
 from .view import http_defaults
 from .view import http_endpoint
@@ -88,24 +90,22 @@ class Configurator:
 
     def __init__(self,
                  app: Application,
+                 config: Config,
                  route_prefix=None,
-                 registry=None,
                  router_configurator=RoutesConfigurator,
                  views_configurator=ViewsConfigurator,
                  rendering_configurator=RenderingConfigurator,
                  sum_types_configurator=SumTypesConfigurator) -> None:
         if route_prefix is None:
             route_prefix = ''
-        if registry is None:
-            registry = {}
-
         self.app = app
+        self.registry = Registry(config=config,
+                                 csrf_policy=SessionCSRFStoragePolicy())
         self.router = router_configurator(app, route_prefix)
         self.views = views_configurator(app)
         self.rendering = rendering_configurator(app)
         self.sums = sum_types_configurator(app)
         self._directives = {}
-        self.registry = registry
         self.setup_configurator()
 
     def include(self, callable, route_prefix: Optional[str] = None):

@@ -25,9 +25,9 @@ class Redis(NamedTuple):
 
 
 class Postgresql(NamedTuple):
-    user: str
-    dbname: str
-    password: str
+    user: str = 'solo'
+    dbname: str = 'solo'
+    password: str = 'solo'
     host: str = '127.0.0.1'
     port: int = 5432
     min_connections: int = 1
@@ -48,14 +48,21 @@ class Server(NamedTuple):
     event_loop: EventLoopType = EventLoopType.ASYNCIO
 
 
+class Testing(NamedTuple):
+    docker_pull: bool = True
+    """ Pull images from registry if they are not available locally yet
+    """
+
+
 class Config(NamedTuple):
     server: Server
-    postgresql: Postgresql
-    redis: Redis
     session: Session
     apps: Sequence[AppConfig] = []
     logging: Dict = {'version': 1}
     debug: bool = True
+    postgresql: Postgresql = Postgresql()
+    redis: Redis = Redis()
+    testing: Testing = Testing()
 
 
-MakeConfig, serializer = type_constructor(Config)
+mk_config, dict_config = type_constructor(Config)

@@ -3,7 +3,7 @@ import logging
 import aiopg.sa
 
 from solo.configurator.exceptions import ConfigurationError
-from solo.server.config import Config
+from solo.config.app import Config
 
 
 log = logging.getLogger(__name__)

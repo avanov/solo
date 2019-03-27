@@ -15,6 +15,8 @@ Contents:
    providers.rst
    migrations.rst
 
+   devdocs/index.rst
+
 
 
 Indices and tables

@@ -2,7 +2,7 @@ import asyncio
 import aioredis
 from aioredis.abc import AbcPool
 
-from .config import Config
+from ..config.app import Config
 
 
 async def init_pool(loop: asyncio.AbstractEventLoop,

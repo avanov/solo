@@ -5,7 +5,7 @@ from solo.apps.accounts.providers import enable_provider
 from . import predicate
 
 
-__all__  = ['get_user']
+__all__ = ['get_user']
 
 
 def includeme(config: Configurator):
