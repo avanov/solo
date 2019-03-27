@@ -1,7 +1,9 @@
 import logging
 from typing import Optional
-from aiohttp.web import Request, HTTPClientError
 
+from solo.server.statuses import Http4xx
+from solo.server.request import Request
+from solo.server.runtime.dependencies import Runtime
 from .util import get_user
 from .service import UserService
 from .model import Guest
@@ -11,25 +13,30 @@ log = logging.getLogger(__name__)
 
 
 class PermissionPredicate:
-    def __init__(self, val, config, raises: Optional[HTTPClientError] = None):
-        config.app.setdefault('permissions', set()).add(val)
+    def __init__(self, val, config, raises: Optional[Http4xx] = None):
+        log.debug(f'Registered permission predicate: {val}')
+        config.available_permissions.add(val)
         self.val = val
         self.raises = raises
 
-    def text(self):
-        return 'permission = {}'.format(self.val)
+    def text(self) -> str:
+        return f'permission = {self.val}'
 
     phash = text
 
-    async def __call__(self, context, request: Request) -> bool:
-        user_service = UserService(request.app)
-        user = await get_user(request)
+    async def __call__(self, runtime: Runtime, request: Request) -> bool:
+        user_service = UserService(runtime.dbengine)
+        user = await get_user(
+            runtime.session_storage,
+            runtime.dbengine,
+            request
+        )
         permissions = await user_service.permissions(user)
         return permissions.allowed(self.val)
 
 
 class AuthenticatedPredicate:
-    def __init__(self, val: bool, config, raises: Optional[HTTPClientError] = None):
+    def __init__(self, val: bool, config, raises: Optional[Http4xx] = None):
         self.val = val
         self.raises = raises
 

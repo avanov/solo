@@ -1,5 +1,5 @@
 import re
-from typing import Optional, Dict, Any, List, Tuple
+from typing import Optional, Dict, Any, List, Tuple, Mapping
 from .config.sums import SumType, SumTypeMetaclass
 from .util import maybe_dotted
 import logging
@@ -137,3 +137,14 @@ def complete_route_pattern(pattern: str, rules: Dict[str, SumType]) -> str:
     # Parsing is done. Now join everything together
     buf = ''.join(buf)
     return buf
+
+
+def complete_url_rules(rules: Mapping[str, Any]) -> Mapping[str, str]:
+    r = {}
+    for name, rule in rules.items():
+        if isinstance(rule, SumTypeMetaclass):
+            # Compose SumType's regex
+            r[name] = '(?:{})'.format('|'.join([str(v) for v in rule.values()]))
+        else:
+            r[name] = rule
+    return r

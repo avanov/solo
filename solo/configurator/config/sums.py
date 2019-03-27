@@ -3,7 +3,6 @@ import re
 from collections import OrderedDict
 from typing import Dict, Any, get_type_hints, Type, Iterator, Set, NamedTuple
 
-from aiohttp.web import Application
 import venusian
 
 from ..exceptions import ConfigurationError
@@ -375,14 +374,13 @@ class SumType(metaclass=SumTypeMetaclass):
 
 class SumTypesConfigurator:
 
-    def __init__(self, app: Application) -> None:
-        self.app = app
+    def __init__(self) -> None:
         self.registry = OrderedDict()
 
     def update_sum_type_registry(self, sum_type_meta: SumTypeMetaData) -> None:
         self.registry[sum_type_meta.type] = sum_type_meta
 
-    def check_sum_types_consistency(self, namespace) -> None:
+    def check_sum_types_consistency(self, namespace: str) -> None:
         for obj_id, sum_type_meta in self.registry.items():
             for variant_name, variant in sum_type_meta.variants.items():
                 for contract_term, implementation in variant.contract._asdict().items():

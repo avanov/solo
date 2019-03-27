@@ -1,14 +1,14 @@
 import logging
-from typing import Optional, Set, Dict
+from typing import Optional, Dict
 
-from aiohttp.web import Application
-from aiohttp.web import Request
-from aiohttp_session import get_session
+from solo.vendor.old_session.old_session import get_session
 from sqlalchemy import select
 
 from solo.apps.accounts.model import Auth, User, UserType, Guest, Group, users_groups_association, Permissions
 from solo.apps.accounts.providers.base_oauth2 import ProfileIntegration
 
+from solo.server.request import Request
+from solo.server.db.types import SQLEngine
 from solo.services import SQLService
 
 
@@ -18,9 +18,9 @@ USER_KEY = '__user__'
 
 
 class UserService(SQLService):
-    def __init__(self, app: Application):
-        super(UserService, self).__init__(app, User)
-        self._permissions = {}  # type: Dict[int, Permissions]
+    def __init__(self, db: SQLEngine):
+        super(UserService, self).__init__(db, User)
+        self._permissions: Dict[int, Permissions] = {}
 
     async def permissions(self, user: UserType) -> Permissions:
         if user is Guest:
@@ -49,9 +49,9 @@ class UserService(SQLService):
 
 class AuthService(SQLService):
 
-    def __init__(self, app: Application):
-        super(AuthService, self).__init__(app, Auth)
-        self.user_service = UserService(app)
+    def __init__(self, db: SQLEngine):
+        super(AuthService, self).__init__(db, Auth)
+        self.user_service = UserService(db)
 
     async def user_to_session(self, request: Request, user: User) -> bool:
         session = await get_session(request)

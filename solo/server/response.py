@@ -1,13 +1,19 @@
 import json
-from typing import Optional, Any, List, Dict, TypeVar
-
-from aiohttp.web import Response
+from typing import Optional, Any, List, Dict, TypeVar, NamedTuple
 
 
 JsonApiPayload = TypeVar('JsonApiPayload', Dict[str, Any],
                                            List[Dict[str, Any]])
 
 encode_json = json.dumps
+
+
+class Response(NamedTuple):
+    status: int
+    text: str
+    content_type: str
+    charset: str
+
 
 
 def ok(data: Optional[JsonApiPayload] = None) -> Response:

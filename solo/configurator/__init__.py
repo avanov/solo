@@ -4,14 +4,16 @@
 import inspect
 import logging
 import pkgutil
-from typing import Optional
+from typing import Optional, Tuple
 from types import ModuleType
 
-from aiohttp.web import Application
 import ramlfications as raml
 import venusian
+from pyrsistent import pmap, pvector
 
-from ..server.config import Config
+from solo.server.app import App
+from solo.server.csrf import SessionCSRFStoragePolicy
+from ..config.app import Config, AppConfig
 from .util import maybe_dotted
 from .config.rendering import BUILTIN_RENDERERS
 from .config.rendering import RenderingConfigurator
@@ -19,10 +21,12 @@ from .config.routes import RoutesConfigurator
 from .config.views import ViewsConfigurator
 from .config.sums import SumTypesConfigurator
 from .exceptions import ConfigurationError
+from .registry import Registry
 from .path import caller_package
 from .view import http_defaults
+from solo.server.definitions import PredicatedHandler
 from .view import http_endpoint
-from .url import normalize_route_pattern
+from .url import normalize_route_pattern, complete_route_pattern, complete_url_rules
 
 __all__ = ['http_endpoint', 'http_defaults', 'Configurator']
 
@@ -30,82 +34,28 @@ __all__ = ['http_endpoint', 'http_defaults', 'Configurator']
 log = logging.getLogger(__name__)
 
 
-class ApplicationManager:
-    def __init__(self, app: Application) -> None:
-        self.app = app
-        self.config: Config = app['config']
-        self.loop = app.loop
-        self.handler = app.make_handler(
-            debug=self.config.debug,
-            keep_alive_on=self.config.server.keep_alive
-        )
-        self.server = None
-
-    def create_server(self, host: Optional[str] = None, port: Optional[int] = None, ssl: Optional[bool] = None):
-        log.debug('Creating a new web server...')
-        self.server = self.loop.run_until_complete(self.create_server_future(host, port, ssl))
-
-    def create_server_future(self, host: Optional[str] = None, port: Optional[int] = None, ssl: Optional[bool] = None):
-        """ Used in conftest
-        """
-        if host is None:
-            host = self.config.server.host
-        if port is None:
-            port = self.config.server.port
-        return self.loop.create_server(self.handler, host, port, ssl=ssl)
-
-    def __enter__(self):
-        log.debug('Entering application context...')
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        log.debug('Exiting application context...')
-        if hasattr(self.app, 'dbengine'):
-            log.debug('Closing database connections...')
-            self.app.dbengine.terminate()
-            self.loop.run_until_complete(self.app.dbengine.wait_closed())
-
-        # Close memstore pool
-        if hasattr(self.app, 'memstore'):
-            log.debug('Closing memory store connections...')
-            self.loop.run_until_complete(self.app.memstore.clear())
-
-
-        if self.server:
-            log.debug('Stopping server...')
-            self.server.close()
-            self.loop.run_until_complete(self.server.wait_closed())
-
-        log.debug('Shutting down the application...')
-        self.loop.run_until_complete(self.app.shutdown())
-        self.loop.run_until_complete(self.handler.finish_connections(60.0))
-        self.loop.run_until_complete(self.app.cleanup())
-
-
 class Configurator:
     venusian = venusian
     inspect = inspect
 
     def __init__(self,
-                 app: Application,
+                 app: App,
+                 config: Config,
                  route_prefix=None,
-                 registry=None,
                  router_configurator=RoutesConfigurator,
                  views_configurator=ViewsConfigurator,
                  rendering_configurator=RenderingConfigurator,
                  sum_types_configurator=SumTypesConfigurator) -> None:
         if route_prefix is None:
             route_prefix = ''
-        if registry is None:
-            registry = {}
-
         self.app = app
-        self.router = router_configurator(app, route_prefix)
+        self.registry = Registry(config=config,
+                                 csrf_policy=SessionCSRFStoragePolicy())
+        self.router = router_configurator(app.url_gen, route_prefix)
         self.views = views_configurator(app)
         self.rendering = rendering_configurator(app)
-        self.sums = sum_types_configurator(app)
-        self._directives = {}
-        self.registry = registry
+        self.sums = sum_types_configurator()
+        self._directives = pmap({})
         self.setup_configurator()
 
     def include(self, callable, route_prefix: Optional[str] = None):
@@ -162,18 +112,46 @@ class Configurator:
             self.router.add_route(name=name, pattern=pattern, rules=rules)
             processed.add(res.name)
 
-    def scan(self, package=None, categories=None, onerror=None, ignore=None):
-        if package is None:
-            package = caller_package()
-        package = maybe_dotted(package)
-        log.debug('Scanning {}'.format(package))
+    def scan(self, package: Optional[AppConfig] = None, categories=None, onerror=None, ignore=None) -> None:
+        pkg_name = package.name if package else caller_package()
+        pkg = maybe_dotted(pkg_name)
+
+        log.debug(f'Scanning {pkg}')
+
         scanner = self.venusian.Scanner(configurator=self)
-        previous_namespace = scanner.configurator.router.change_namespace(package.__name__)
-        scanner.scan(package, categories=categories, onerror=onerror, ignore=ignore)
-        self.router.check_routes_consistency(package)
-        self.sums.check_sum_types_consistency(package)
+
+        previous_namespace = scanner.configurator.router.change_namespace(pkg.__name__)
+        scanner.scan(pkg, categories=categories, onerror=onerror, ignore=ignore)
+        self.router.check_routes_consistency(pkg)
+        self.sums.check_sum_types_consistency(pkg)
         scanner.configurator.router.change_namespace(previous_namespace)
-        log.debug('End scanning {}'.format(package))
+
+        self.app = self.register_routes(self.app, pkg_name)
+
+        for setup_step in package.setup:
+            directive, kw = pvector(setup_step.items())[0]
+            getattr(self, directive)(**kw)
+        log.debug(f'End scanning {pkg}')
+
+    def register_routes(self, webapp: App, namespace: str) -> App:
+        # Setup routes
+        # ------------
+        application_routes = self.router.routes[namespace]
+        for route in application_routes.values():
+            handler = PredicatedHandler(route.rules, route.view_metas)
+            requirements = complete_url_rules(route.rules)
+            log.debug(
+                f'Binding route {route.pattern} '
+                f'to the handler named {route.name} '
+                f'in the namespace {namespace}.'
+            )
+            webapp.route_map.connect(
+                f'{namespace}:{route.name}',
+                route.pattern,
+                requirements=requirements,
+                controller=handler
+            )
+        return webapp
 
     def setup_configurator(self):
         # Add default renderers
@@ -195,7 +173,7 @@ class Configurator:
         c = maybe_dotted(directive)
         if name is None:
             name = c.__name__
-        self._directives[name] = (c, action_wrap)
+        self._directives = self._directives.update({name: (c, action_wrap)})
 
 
     def __getattr__(self, name: str):
@@ -213,7 +191,5 @@ class Configurator:
         m = c.__get__(self, self.__class__)
         return m
 
-    def final_application(self) -> ApplicationManager:
-        self.app.update(self.registry._asdict())
-        self.app.update()
-        return ApplicationManager(self.app)
+    def complete(self) -> Tuple[App, Registry]:
+        return self.app, self.registry

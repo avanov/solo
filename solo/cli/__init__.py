@@ -1,23 +1,23 @@
 """ Place for Console Scripts.
 """
 import argparse
-import asyncio
 import logging
 import logging.config
 import sys
+from pathlib import Path
 
 from pkg_resources import get_distribution
 
-from solo.cli import run
+from solo.asyncio import decide_event_loop_policy
+from . import commands
 from solo.integrations.alembic import integrate_alembic_cli
-from solo.server.config import Config, EventLoopType
-from .util import parse_app_config
+from .util import parse_app_config, parse_compose_config
 
 
-def main(args=None, stdout=None):
+def main(args=None, stdout=None) -> None:
     parser = argparse.ArgumentParser(description='Manage Solo projects.')
     parser.add_argument('-V', '--version', action='version',
-                        version='Solo {}'.format(get_distribution("solo").version))
+                        version=f'Solo {get_distribution("solo").version}')
     subparsers = parser.add_subparsers(title='sub-commands',
                                        description='valid sub-commands',
                                        help='additional help',
@@ -27,11 +27,11 @@ def main(args=None, stdout=None):
 
     # $ solo run <config>
     # ---------------------------
-    run.setup(subparsers)
+    commands.run.setup(subparsers)
 
     # $ solo db [args]
     # ---------------------------
-    integrate_alembic_cli(subparsers)
+    integrate_alembic_cli(subparsers, prefix='db')
 
     # Common arguments
     # ----------------
@@ -42,7 +42,7 @@ def main(args=None, stdout=None):
     if args is None:
         args = sys.argv[1:]
     args = parser.parse_args(args)
-    solo_cfg = parse_app_config(args.solocfg)
+    solo_cfg = parse_app_config(Path(args.solocfg))
 
     # Set up and run
     # --------------
@@ -70,11 +70,3 @@ def _add_common_arguments(subparsers: argparse._SubParsersAction):
                 _add_common_arguments(action)
         else:
             sp.add_argument("--solocfg", default='solocfg.yml', help="path to a YAML config (default ./solocfg.yml).")
-
-
-def decide_event_loop_policy(solo_cfg: Config) -> None:
-    """ Select and set event loop implementation.
-    """
-    if solo_cfg.server.event_loop is EventLoopType.UVLOOP:
-        import uvloop
-        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())

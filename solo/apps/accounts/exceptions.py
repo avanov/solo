@@ -1,5 +1,8 @@
-class CSRFError(Exception):
-    pass
+from solo.server.statuses import Http4xx
+
+
+class CSRFError(Http4xx):
+    status = 403
 
 
 class AuthorizationError(Exception):

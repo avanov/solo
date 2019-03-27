@@ -1,11 +1,10 @@
-from . import import_hooks
+# from . import import_hooks
+# import_hooks.activate()
 
-import_hooks.activate()
-
+from . import cli, config
 from .configurator import Configurator
 from .configurator import http_defaults
 from .configurator import http_endpoint
-from .configurator.config.sums import SumType
-from .server.startup import init_webapp
+from .server.startup import application_entrypoint
 
-__all__ = ['Configurator', 'http_defaults', 'http_endpoint', 'SumType', 'init_webapp']
+__all__ = ['cli', 'config', 'Configurator', 'http_defaults', 'http_endpoint', 'application_entrypoint']

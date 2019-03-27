@@ -2,7 +2,7 @@ from typing import TypeVar, Set, Type
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSON
 
-from solo import SumType
+from solo.configurator.config.sums import SumType
 from solo.configurator.models import register_model
 from solo.server.model import Base
 from solo.server.db.types import PythonMappedEnum

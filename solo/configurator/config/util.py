@@ -1,4 +1,5 @@
 from hashlib import md5
+from typing import Iterable, TypeVar, Tuple
 
 from ..registry import predvalseq
 from ..compat import (
@@ -12,7 +13,9 @@ from ..util import TopologicalSorter
 MAX_ORDER = 1 << 30
 
 
-def as_sorted_tuple(val):
+T = TypeVar('T')
+
+def as_sorted_tuple(val: Iterable[T]) -> Tuple[T, ...]:
     if not is_nonstr_iter(val):
         val = (val,)
     val = tuple(sorted(val))

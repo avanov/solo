@@ -1,10 +1,10 @@
 import logging
 from typing import List, Iterable, Set, Optional
 
-from aiohttp import web
-from sqlalchemy import Table, Column, select
+from sqlalchemy import Table, select
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 
+from ..server.db.types import SQLEngine
 from ..server.model import Base
 
 log = logging.getLogger(__name__)
@@ -12,9 +12,8 @@ log = logging.getLogger(__name__)
 
 class SQLService:
 
-    def __init__(self, app: web.Application, entity: Base, table: Optional[Table] = None):
-        self.app = app
-        self.engine = app.dbengine  # type: aiopg.sa.Engine
+    def __init__(self, db: SQLEngine, entity: Base, table: Optional[Table] = None):
+        self.engine = db
         if table is None:
             table = entity.__table__
         self.t = table

@@ -1,9 +1,11 @@
 import os
 from collections import OrderedDict
-from typing import List, Optional, Dict
+from dataclasses import dataclass
+from types import ModuleType
+from typing import List, Optional, Dict, NamedTuple, Any
 import logging
 
-from aiohttp.web import Application
+import routes
 
 from ..exceptions import ConfigurationError
 from .sums import SumType
@@ -13,13 +15,12 @@ log = logging.getLogger(__name__)
 
 
 class RoutesConfigurator:
-    def __init__(self, app: Application, route_prefix: str):
-        self.app = app
+    def __init__(self, url_gen: routes.URLGenerator, route_prefix: str):
+        self.url_gen: routes.URLGenerator = url_gen
         self.route_prefix = route_prefix
         self.namespace = 'solo'
-        self.routes = OrderedDict()
+        self.routes: Dict[str, Dict[str, Route]] = OrderedDict()
         self.routes[self.namespace] = OrderedDict()
-        self.routes_aiohttp_mapping = {}
 
     def change_route_prefix(self, prefix: str) -> str:
         old_prefix = self.route_prefix
@@ -41,27 +42,23 @@ class RoutesConfigurator:
             rules = {}
 
         if name in self.routes[self.namespace]:
-            raise ConfigurationError('Route named "{}" is already registered in the namespace {}'.format(
-                name, self.namespace
-            ))
+            raise ConfigurationError(
+                f'Route named "{name}" is already registered in the namespace {self.namespace}'
+            )
 
-        log.debug('Registering global route "{pattern}" with the local name "{name}" in the {namespace} namespace'.format(
-            pattern=pattern,
-            name=name,
-            namespace=self.namespace
-        ))
-        aiohttp_name = name.replace('/', '_').replace('{', '_').replace('}', '_')
+        log.debug(
+            f'Registering global route "{pattern}" '
+            f'with the local name "{name}" in the {self.namespace} namespace'
+        )
         self.routes[self.namespace][name] = Route(name=name,
                                                   pattern=pattern,
                                                   rules=rules,
                                                   extra_kwargs=extra_kwargs,
-                                                  view_metas=[],
-                                                  aiohttp_name=aiohttp_name)
-        self.routes_aiohttp_mapping['{}:{}'.format(self.namespace, name)] = aiohttp_name
+                                                  view_metas=[])
 
-    def check_routes_consistency(self, package):
+    def check_routes_consistency(self, package: ModuleType) -> None:
         namespace = package.__name__
-        log.debug('Checking routes consistency for {}...'.format(namespace))
+        log.debug(f'Checking routes consistency for {namespace}...')
         for route_name, route in self.routes[namespace].items():
             view_metas = route.view_metas
             if not view_metas:
@@ -79,15 +76,14 @@ class RoutesConfigurator:
                             namespace=namespace
                         )
                     )
-    def url_for(self, name: str, *args, **kwargs):
-        aiohttp_name = self.routes_aiohttp_mapping[name]
-        return self.app.router[aiohttp_name].url_for(*args, **kwargs)
+    def url_for(self, ns: str, name: str, *args, **kwargs) -> str:
+        return self.url_gen(f'{ns}:{name}', *args, **kwargs)
 
 
 class ViewMeta:
     __slots__ = ['route_name', 'view', 'attr', 'renderer', 'predicates']
 
-    def __init__(self, route_name: str, view, attr: Optional[str], renderer, predicates):
+    def __init__(self, route_name: str, view, attr: Optional[str], renderer: str, predicates):
         self.route_name = route_name
         self.view = view
         self.attr = attr
@@ -95,13 +91,9 @@ class ViewMeta:
         self.predicates = predicates
 
 
-class Route:
-    __slots__ = ['name', 'pattern', 'rules', 'aiohttp_name', 'extra_kwargs', 'view_metas']
-
-    def __init__(self, name: str, pattern: str, rules, aiohttp_name: str, extra_kwargs, view_metas: List[ViewMeta]):
-        self.name = name
-        self.pattern = pattern
-        self.extra_kwargs = extra_kwargs
-        self.rules = rules
-        self.view_metas = view_metas
-        self.aiohttp_name = aiohttp_name
+class Route(NamedTuple):
+    name: str
+    pattern: str
+    rules: Any
+    extra_kwargs: Any
+    view_metas: List[ViewMeta]

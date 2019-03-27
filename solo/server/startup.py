@@ -1,84 +1,51 @@
 import asyncio
 import logging
-from typing import NamedTuple, Dict
 
-import aiohttp_session
-from aiohttp import web
-from aiohttp_session.redis_storage import RedisStorage
+import routes
+from pyrsistent import pvector
 
-from solo import Configurator
-from solo.configurator import ApplicationManager
-from solo.configurator.exceptions import ConfigurationError
-from solo.configurator.url import complete_route_pattern
-from solo.configurator.view import PredicatedHandler
+from ..configurator import Configurator
+from solo.server.io_manager import AIOManager
 from solo.server import db
 from solo.server import memstore
-from solo.server.config import Config
-
+from solo.config.app import Config
+from solo.server.app import App
 
 log = logging.getLogger(__name__)
 
-class Registry(NamedTuple):
-    config: Config
-    settings: Dict = {}
 
-
-async def init_webapp(loop: asyncio.AbstractEventLoop,
-                      config: Config) -> ApplicationManager:
-    webapp = web.Application(loop=loop,
-                             debug=config.debug)
-
-    registry = Registry(config=config)
-    configurator = Configurator(webapp, registry=registry)
-
-    for app in config.apps:
-        log.debug("------- Setting up {} -------".format(app.name))
-        configurator.include(app.name, app.url_prefix)
-        configurator.scan(package=app.name, ignore=['.__pycache__', f'{app.name}.migrations'])
-        webapp = register_routes(app.name, webapp, configurator)
-        for setup_step in app.setup:
-            directive, kw = list(setup_step.items())[0]
-            getattr(configurator, directive)(**kw)
-
-
+def application_entrypoint(loop: asyncio.AbstractEventLoop,
+                          config: Config) -> AIOManager:
+    """ This is where our web application starts from a config provided through CLI.
+    """
     # Setup database connection pool
     # ------------------------------
-    try:
-        engine = await db.setup_database(loop, config)
-    except ConfigurationError as e:
-        log.warning(f"{e}: you won't be able to use PostgresSQL in this instance.")
-    else:
-        setattr(webapp, 'dbengine', engine)
+    dbengine = db.setup_database(loop, config)
 
     # Setup memory store
     # ------------------
-    memstore_pool = await memstore.init_pool(loop, config)
-    setattr(webapp, 'memstore', memstore_pool)
+    memstore_pool = memstore.init_pool(loop, config)
+    url_gen = routes.URLGenerator(
+        routes.Mapper(),
+        {'SERVER_NAME': config.server.host,
+         'SERVER_PORT': config.server.port}
+    )
+    app = App(
+        route_map=url_gen.mapper,
+        url_gen=url_gen,
+        dbengine=dbengine,
+        memstore=memstore_pool,
+    )
+    configurator = Configurator(app, config=config)
 
-    # Setup sessions middleware
-    # -------------------------
-    aiohttp_session.setup(webapp, RedisStorage(memstore_pool,
-                                               cookie_name=config.session.cookie_name,
-                                               secure=config.session.cookie_secure,
-                                               httponly=config.session.cookie_httponly))
-
-    return configurator.final_application()
-
-
-def register_routes(namespace: str, webapp: web.Application, configurator: Configurator) -> web.Application:
-    # app.router.add_route("GET", "/probabilities/{attrs:.+}",
-    #                     probabilities.handlers.handler)
-    # Setup routes
-    # ------------
-    application_routes = configurator.router.routes[namespace]
-    for route in application_routes.values():  # type: Route
-        handler = PredicatedHandler(route.rules, route.view_metas)
-        guarded_route_pattern = complete_route_pattern(route.pattern, route.rules)
-        log.debug('Binding route {} to the handler named {} in the namespace {}.'.format(
-            guarded_route_pattern, route.name, namespace
-        ))
-        webapp.router.add_route(method='*',
-                                path=guarded_route_pattern,
-                                name=route.aiohttp_name,
-                                handler=handler)
-    return webapp
+    for user_app in config.apps:
+        log.debug(f"------- Setting up {user_app.name} -------")
+        configurator.include(user_app.name, user_app.url_prefix)
+        configurator.scan(
+            package=user_app,
+            ignore=pvector(['.__pycache__', f'{user_app.name}.migrations'])
+        )
+    app, registry = configurator.complete()
+    return AIOManager ( loop     = loop
+                      , app      = app
+                      , registry = registry )

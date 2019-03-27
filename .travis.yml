@@ -4,21 +4,20 @@ sudo: true
 language: python
 cache: pip
 services:
-  - postgresql
-  - redis-server
-addons:
-  postgresql: "9.4"
+  - docker
+# addons:
+#   postgresql: "9.4"
 
 install:
-  - pip install -r ./requirements.txt
-  - pip install -r ./requirements_test.txt
+  - pip install -r ./requirements/minimal.txt
+  - pip install -r ./requirements/test.txt
   - pip install coveralls
 python:
   - "3.7"
 
-before_script:
-  - psql -c 'create role solo with superuser login;' -U postgres
-  - psql -c 'create database solo with owner solo;' -U postgres
+# before_script:
+#   - psql -c 'create role solo with superuser login;' -U postgres
+#   - psql -c 'create database solo with owner solo;' -U postgres
 
 # --source specifies what packages to cover, you probably want to use that option
 script:

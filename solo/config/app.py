@@ -1,13 +1,16 @@
 from enum import Enum
 
-from typing import NamedTuple, Dict, Sequence
+from typing import NamedTuple
+
+from pyrsistent import pmap, pvector
+from pyrsistent.typing import PVector, PMap
 from typeit import type_constructor
 
 
 class AppConfig(NamedTuple):
     name: str
     url_prefix: str
-    setup: Sequence[Dict] = []
+    setup: PVector[PMap] = pvector([])
 
 
 class Session(NamedTuple):
@@ -25,9 +28,9 @@ class Redis(NamedTuple):
 
 
 class Postgresql(NamedTuple):
-    user: str
-    dbname: str
-    password: str
+    user: str = 'solo'
+    dbname: str = 'solo'
+    password: str = 'solo'
     host: str = '127.0.0.1'
     port: int = 5432
     min_connections: int = 1
@@ -44,18 +47,26 @@ class Server(NamedTuple):
     host: str = '127.0.0.1'
     port: int = 8000
     keep_alive: bool = True
+    keep_alive_timeout: int = 30
     # asyncio/uvloop
     event_loop: EventLoopType = EventLoopType.ASYNCIO
 
 
+class Testing(NamedTuple):
+    docker_pull: bool = True
+    """ Pull images from registry if they are not available locally yet
+    """
+
+
 class Config(NamedTuple):
     server: Server
-    postgresql: Postgresql
-    redis: Redis
     session: Session
-    apps: Sequence[AppConfig] = []
-    logging: Dict = {'version': 1}
+    apps: PVector[AppConfig] = pvector([])
+    logging: PMap = pmap({'version': 1})
     debug: bool = True
+    postgresql: Postgresql = Postgresql()
+    redis: Redis = Redis()
+    testing: Testing = Testing()
 
 
-MakeConfig, serializer = type_constructor(Config)
+mk_config, dict_config = type_constructor ^ Config

@@ -1,10 +1,7 @@
 import logging
-from typing import List, Dict
-from .config.routes import ViewMeta
+
 from .config.routes import Route
-from .config.sums import SumType
 from .exceptions import ConfigurationError
-from aiohttp.web import Request, Response, HTTPNotFound
 
 import venusian
 
@@ -65,48 +62,3 @@ class http_defaults(http_endpoint):
     def __call__(self, wrapped):
         wrapped.__view_defaults__ = self.__dict__.copy()
         return wrapped
-
-
-class PredicatedHandler:
-    __slots__ = ['rules', 'view_metas']
-
-    def __init__(self, rules: Dict[str, SumType], view_metas: List[ViewMeta]):
-        self.view_metas = view_metas
-        self.rules = rules
-
-    async def __call__(self, request: Request):
-        """ Resolve predicates here.
-        """
-        # here predicate is an instance object
-        for view_item in self.view_metas:
-            for predicate in view_item.predicates:
-                if not (await predicate(None, request)):
-                    log.debug('Predicate {} failed for {} {}'.format(predicate, request.method, request.path_qs))
-                    break
-            else:
-                # All predicates match
-                log.debug('{} {} will be handled by {}'.format(request.method, request.path_qs, view_item.view))
-                handler = view_item.view
-                context = {}
-                rules = self.rules
-                for k, v in request.match_info.items():
-                    if k in rules:  # match SumType's case
-                        context[k] = self.rules[k].match(v)
-                    else:  # regular value assignment
-                        context[k] = v
-                if view_item.attr:
-                    # handler is a coroutine method of a class
-                    handler = getattr(handler(request, context), view_item.attr)
-                    response = await handler()
-                else:
-                    # handler is a simple coroutine
-                    response = await handler(request, context)
-
-                if isinstance(response, Response):
-                    # Do not process standard responses
-                    return response
-                renderer = view_item.renderer
-                return renderer(request, response)
-
-        log.debug('All predicates have failed for {} {}'.format(request.method, request.path_qs))
-        raise HTTPNotFound()

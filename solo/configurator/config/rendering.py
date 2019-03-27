@@ -1,8 +1,9 @@
 import json
 from typing import Dict, Any
 
-from aiohttp.web import Request, Response, Application
-from solo.server.response import _response_jsonapi, response_json
+from solo.server.app import App
+from solo.server.request import Request
+from solo.server.response import _response_jsonapi, response_json, Response
 
 
 json_encode = json.dumps
@@ -24,11 +25,11 @@ class JsonRendererFactory:
         return response_json(200, view_response)
 
 
-class StringRendererFactory(object):
+class StringRendererFactory:
     def __init__(self, name: str):
         self.name = name
 
-    def __call__(self, request: Request, view_response: Any):
+    def __call__(self, request: Request, view_response: Any) -> Response:
         return Response(text=str(view_response),
                         content_type='text/plain',
                         charset='utf-8',
@@ -44,11 +45,11 @@ BUILTIN_RENDERERS = {
 
 class RenderingConfigurator:
 
-    def __init__(self, app: Application):
+    def __init__(self, app: App):
         self.app = app
         self.renderers = {}
 
-    def add_renderer(self, name: str, factory):
+    def add_renderer(self, name: str, factory) -> None:
         self.renderers[name] = factory
 
     def get_renderer(self, name: str):
@@ -63,4 +64,4 @@ class RenderingConfigurator:
         try:
             return self.renderers[renderer_name](name)
         except KeyError:
-            raise ValueError('No such renderer factory {}'.format(renderer_name))
+            raise ValueError(f'No such renderer factory {renderer_name}')

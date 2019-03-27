@@ -1,13 +1,14 @@
+import json
 import logging
 from typing import List, Optional
 
-from aiohttp import ClientSession
-from aiohttp import web
-from aiohttp.web import HTTPBadRequest
+from httpx import AsyncClient
 
-from solo.apps.accounts.exceptions import ProviderServiceError, CSRFError
+from solo.apps.accounts.exceptions import ProviderServiceError
 from solo.apps.accounts.model import AuthProvider
 from solo.apps.accounts.providers.base_oauth2 import OAuth2Provider, ThirdPartyProfile, ProfileIntegration
+from solo.server.request import Request
+from solo.vendor.old_session.old_session import Session
 
 from .definitions import AuthenticatedUser, MakeAuthenticatedUser
 
@@ -28,47 +29,49 @@ class GithubProvider(OAuth2Provider):
         :param redirect_uri: The redirect_uri parameter is optional. If left out, GitHub will redirect users to the
                              callback URL configured in the OAuth Application settings.
         """
-        super(GithubProvider, self).__init__(client_id, client_secret, scope,
-                                             redirect_uri=redirect_uri,
-                                             authorize_url='https://github.com/login/oauth/authorize',
-                                             access_token_url='https://github.com/login/oauth/access_token',
-                                             profile_url='https://api.github.com/user')
+        super().__init__(client_id, client_secret, scope,
+                         redirect_uri=redirect_uri,
+                         authorize_url='https://github.com/login/oauth/authorize',
+                         access_token_url='https://github.com/login/oauth/access_token',
+                         profile_url='https://api.github.com/user')
 
-    async def callback(self, request: web.Request) -> ProfileIntegration:
+    async def callback(self, request: Request, session: Session) -> ProfileIntegration:
         """ Process github redirect
         """
-        try:
-            session_state, code = await self.validate_callback(request)
-        except CSRFError:
-            raise HTTPBadRequest
+        session_state, code = await self.validate_callback_exn(request, session)
 
         # Now retrieve the access token with the code
         access_url = self.get_access_token_payload(session_state, code)
-        with ClientSession(headers={'Accept': 'application/json'}) as http:
-            async with http.get(access_url) as r:
-                if r.status != 200:
-                    content = await r.text()
-                    raise ProviderServiceError(f'Service responded with status {r.status}: {content}')
+        headers = {'Accept': 'application/json'}
+        with AsyncClient() as http:
+            async with http.get(access_url, headers=headers) as r:
+                if r.status_code != 200:
+                    content = r.text
+                    raise ProviderServiceError(
+                        f'Service responded with status {r.status}: {content}'
+                    )
                 else:
-                    content = await r.json()
+                    content = json.loads(r.text)
                 access_token = content['access_token']
 
                 # Retrieve profile data
                 profile_url = self.get_profile_payload(access_token=access_token)
-                async with http.get(profile_url) as profile_r:
-                    if profile_r.status != 200:
-                        content = await profile_r.text()
+                async with http.get(profile_url, headers=headers) as profile_r:
+                    if profile_r.status_code != 200:
+                        content = profile_r.text
                         raise ProviderServiceError(
                             f"Error during profile retrieval. Status {profile_r.status}: {content}"
                         )
                     else:
-                        profile_data = await profile_r.json()
+                        profile_data = json.loads(profile_r.text)
                         profile_data: AuthenticatedUser = MakeAuthenticatedUser(profile_data)
 
-                    profile = ThirdPartyProfile(id=str(profile_data.id),
-                                                display_name=profile_data.name or profile_data.login,
-                                                # email might be non-verified
-                                                email=profile_data.email)
+                    profile = ThirdPartyProfile(
+                        id=str(profile_data.id),
+                        display_name=profile_data.name or profile_data.login,
+                        # email might be non-verified
+                        email=profile_data.email
+                    )
 
                     return ProfileIntegration(provider=AuthProvider.GITHUB,
                                               access_token=access_token,

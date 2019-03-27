@@ -1,19 +1,20 @@
 import inspect
 from typing import Optional
 
-from aiohttp.web import Application
-
+from solo.server.definitions import HttpMethod
 from . import predicates as default_predicates
 from ..util import viewdefaults
 from .routes import ViewMeta
 from .util import PredicateList
 from ..exceptions import ConfigurationError
+from solo.server.app import App
 
 
 class ViewsConfigurator:
 
-    def __init__(self, app: Application):
+    def __init__(self, app: App):
         self.app = app
+        self.available_permissions = set()
         self.predicates = PredicateList()
 
     @viewdefaults
@@ -84,7 +85,7 @@ class ViewsConfigurator:
         # Register predicates
         # -------------------------------------
         if request_method is None:
-            request_method = ('GET',)
+            request_method = (HttpMethod.GET,)
         pvals = predicates.copy()
         pvals.update(
             dict(

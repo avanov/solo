@@ -4,12 +4,13 @@ server:
   host: 0.0.0.0
   port: 8000
   keep_alive: False
+  keep_alive_timeout: 30
   public_uri: "http://127.0.0.1:4200"
   event_loop: uvloop
 
 postgresql:
   host: 127.0.0.1
-  port: 5432
+  port: 5433
   user: solo
   dbname: solo
   password: solo
@@ -18,7 +19,7 @@ postgresql:
 
 redis:
   host: 127.0.0.1
-  port: 6379
+  port: 6380
   db: 0
   min_connections: 1
   max_connections: 10
@@ -40,6 +41,10 @@ apps:
             - "user:email"
             - public_repo
 
+testing:
+  docker_pull: true
+
+
 logging:
   version: 1
   formatters:
@@ -53,10 +58,6 @@ logging:
       stream: ext://sys.stdout
   loggers:
     asyncio:
-      level: DEBUG
-      handlers: [console]
-      propagate: no
-    aiohttp:
       level: DEBUG
       handlers: [console]
       propagate: no
