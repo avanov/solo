@@ -1,4 +1,5 @@
-uvicorn==0.7.0
+uvicorn==0.7.2
+uvloop>=0.12.2,<0.13.0
 aiohttp==3.5.4
 aiohttp_session[aioredis]==2.7.0
 aiopg==0.16.0
@@ -10,8 +11,7 @@ alembic==1.0.9
 pyyaml>=5.1,<6.0
 ramlfications==0.1.9
 venusian==1.2.0
-uvloop>=0.12.1,<0.13.0
 # for the parser
 inflection==0.3.1
-typeit==0.12.0
+typeit==0.13.0
 routes==2.4.1

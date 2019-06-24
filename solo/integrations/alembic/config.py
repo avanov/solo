@@ -1,7 +1,10 @@
-import asyncio
 from typing import Dict, Any
 from alembic.config import Config
-from solo import init_webapp
+from sqlalchemy import MetaData
+
+from solo.config.app import Config as SoloConfig
+from solo.server.startup import application_entrypoint
+from solo.asyncio import configure_io
 
 
 def alembic_config_from_solo(solo_cfg: Dict[str, Any]) -> Config:
@@ -51,11 +54,10 @@ def alembic_config_from_solo(solo_cfg: Dict[str, Any]) -> Config:
     return alembic_cfg
 
 
-def collect_metadata(solo_cfg: Dict[str, Any]):
+def collect_metadata(solo_cfg: SoloConfig) -> MetaData:
     from solo.server.model import metadata
 
-    loop = asyncio.get_event_loop()
-    loop.set_debug(solo_cfg['debug'])
-    with loop.run_until_complete(init_webapp(loop, solo_cfg)) as app:
+    loop = configure_io(solo_cfg)
+    with application_entrypoint(loop, solo_cfg) as app:
         pass
     return metadata

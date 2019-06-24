@@ -1,15 +1,15 @@
 version: "2"
 services:
   postgres:
-    image: postgres:11.2-alpine
+    image: postgres:11.3-alpine
     environment:
       POSTGRES_USER: solo
       POSTGRES_PASSWORD: solo
       POSTGRES_DB: solo
     ports:
-      - 5432:5432
+      - 5433:5432
 
   redis:
     image: redis:5.0.4-alpine
     ports:
-      - 6379:6379
+      - 6380:6379

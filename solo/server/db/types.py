@@ -1,7 +1,7 @@
 import logging
 import sqlalchemy.types as sa_types
 from enum import Enum as PythonEnum
-from solo import SumType
+from solo.configurator.config.sums import SumType
 
 
 log = logging.getLogger(__name__)

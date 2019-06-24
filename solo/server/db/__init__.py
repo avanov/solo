@@ -1,25 +1,22 @@
 import asyncio
 import logging
+from typing import Awaitable
+
 import aiopg.sa
 
-from solo.configurator.exceptions import ConfigurationError
 from solo.config.app import Config
 
 
 log = logging.getLogger(__name__)
 
 
-async def setup_database(loop: asyncio.AbstractEventLoop,
-                         config: Config) -> aiopg.sa.Engine:
+def setup_database(loop: asyncio.AbstractEventLoop,
+                    config: Config) -> Awaitable[aiopg.sa.Engine]:
     """ Configure and return sqlalchemy's Engine instance with a
     built-in connection pool.
     """
-    log.debug('Establishing connection with PostgreSQL...')
-    try:
-        dbconf = config.postgresql
-    except KeyError:
-        raise ConfigurationError('PostgreSQL configuration is not provided')
-
+    log.debug(f'Configuring PostgreSQL client {config.postgresql.port}...')
+    dbconf = config.postgresql
     dsn = "dbname={dbname} user={user} password={password} host={host} port={port}".format(
         user=dbconf.user,
         password=dbconf.password,
@@ -27,9 +24,11 @@ async def setup_database(loop: asyncio.AbstractEventLoop,
         port=dbconf.port,
         dbname=dbconf.dbname
     )
-    engine = await aiopg.sa.create_engine(dsn=dsn,
-                                          minsize=dbconf.min_connections,
-                                          maxsize=dbconf.max_connections,
-                                          loop=loop,
-                                          echo=config.debug)
+    engine = aiopg.sa.create_engine(
+        dsn=dsn,
+        minsize=dbconf.min_connections,
+        maxsize=dbconf.max_connections,
+        loop=loop,
+        echo=config.debug
+    )
     return engine

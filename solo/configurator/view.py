@@ -68,7 +68,7 @@ class http_defaults(http_endpoint):
 
 
 class PredicatedHandler:
-    __slots__ = ['rules', 'view_metas']
+    __slots__ = ('rules', 'view_metas')
 
     def __init__(self, rules: Dict[str, SumType], view_metas: List[ViewMeta]):
         self.view_metas = view_metas
@@ -108,5 +108,5 @@ class PredicatedHandler:
                 renderer = view_item.renderer
                 return renderer(request, response)
 
-        log.debug('All predicates have failed for {} {}'.format(request.method, request.path_qs))
+        log.debug(f'All predicates have failed for {request.method} {request.path_qs}')
         raise HTTPNotFound()

@@ -12,12 +12,13 @@ log = logging.getLogger(__name__)
 
 class PermissionPredicate:
     def __init__(self, val, config, raises: Optional[HTTPClientError] = None):
-        config.app.setdefault('permissions', set()).add(val)
+        log.debug(f'Registered permission predicate: {val}')
+        config.available_permissions.add(val)
         self.val = val
         self.raises = raises
 
-    def text(self):
-        return 'permission = {}'.format(self.val)
+    def text(self) -> str:
+        return f'permission = {self.val}'
 
     phash = text
 

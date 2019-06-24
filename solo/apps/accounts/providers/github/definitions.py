@@ -39,4 +39,4 @@ class AuthenticatedUser(NamedTuple):
     updated_at: str
 
 
-MakeAuthenticatedUser = type_constructor(AuthenticatedUser)
+MakeAuthenticatedUser = type_constructor ^ AuthenticatedUser

@@ -2,7 +2,6 @@ from typing import Dict, Any
 
 from aiohttp import web
 from aiohttp.web import HTTPFound
-from aiohttp_session import get_session
 
 from solo import http_defaults, http_endpoint
 from solo.apps.accounts.service import AuthService

@@ -2,18 +2,17 @@ import logging
 import pytest
 import time
 import socket
+
 import psycopg2
 import redis
-from aiohttp import web
 from faker import Faker
 from docker.api import APIClient as DockerAPIClient
 from docker import from_env as docker_from_env
+import webtest_asgi
 
-from solo.cli.util import parse_app_config
-from solo.cli.util import parse_compose_config
-from solo import init_webapp
-from solo.config.app import Config as AppConfig
+import solo
 from solo.config import docker_compose as compose_config
+from solo.configurator import AIOManager
 from . import TESTS_ROOT
 
 
@@ -33,17 +32,17 @@ def logger(app_config):
 
 
 @pytest.fixture(scope='session')
-def app_config() -> AppConfig:
+def app_config() -> solo.config.Config:
     # TODO: move path to outer scope
     cfg_path = TESTS_ROOT.parent / 'test_config.yml'
-    config = parse_app_config(cfg_path)
+    config = solo.cli.parse_app_config(cfg_path)
     yield config
 
 
 @pytest.fixture(scope='session')
 def docker_compose_config() -> compose_config.Config:
     cfg_path = TESTS_ROOT.parent / 'env' / 'dev' / 'docker-compose.yml'
-    config = parse_compose_config(cfg_path)
+    config = solo.cli.parse_compose_config(cfg_path)
     yield config
 
 
@@ -51,18 +50,23 @@ def docker_compose_config() -> compose_config.Config:
 def docker_client() -> DockerAPIClient:
     return docker_from_env().api
 
+@pytest.fixture
+def solo_aio(
+    loop,
+    app_config,
+    pg_server,
+    redis_server,
+) -> AIOManager:
+    with solo.application_entrypoint(loop, app_config) as app_manager:
+        yield app_manager
+
 
 @pytest.fixture
 def web_client(
     loop,
-    test_client,
-    app_config,
-    pg_server,
-    redis_server,
-):
-    app_manager = loop.run_until_complete(init_webapp(loop, app_config))
-    app = app_manager.app
-    return loop.run_until_complete(test_client(app))
+    solo_aio,
+) -> webtest_asgi.TestClient:
+    return webtest_asgi.TestClient(solo_aio.app)
 
 
 @pytest.fixture(scope='session')
@@ -129,7 +133,7 @@ def pg_server(
         )
         delay = 0.01
         for i in range(100):
-            logger.info('Attempting to connect to the containerized Postgres...')
+            logger.info(f'Attempting to connect to the containerized Postgres {host_port}...')
             try:
                 with psycopg2.connect(**server_params) as conn:
                     with conn.cursor() as cur:

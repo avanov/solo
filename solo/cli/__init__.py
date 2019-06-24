@@ -12,13 +12,13 @@ from pkg_resources import get_distribution
 from . import commands
 from solo.integrations.alembic import integrate_alembic_cli
 from solo.config.app import Config, EventLoopType
-from .util import parse_app_config
+from .util import parse_app_config, parse_compose_config
 
 
-def main(args=None, stdout=None):
+def main(args=None, stdout=None) -> None:
     parser = argparse.ArgumentParser(description='Manage Solo projects.')
     parser.add_argument('-V', '--version', action='version',
-                        version='Solo {}'.format(get_distribution("solo").version))
+                        version=f'Solo {get_distribution("solo").version}')
     subparsers = parser.add_subparsers(title='sub-commands',
                                        description='valid sub-commands',
                                        help='additional help',

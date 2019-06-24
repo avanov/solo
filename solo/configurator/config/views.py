@@ -14,6 +14,7 @@ class ViewsConfigurator:
 
     def __init__(self, app: Application):
         self.app = app
+        self.available_permissions = set()
         self.predicates = PredicateList()
 
     @viewdefaults
