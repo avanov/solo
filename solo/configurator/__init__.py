@@ -58,23 +58,23 @@ class Configurator:
         self._directives = pmap({})
         self.setup_configurator()
 
-    def include(self, callable, route_prefix: Optional[str] = None):
+    def include(self, callable, route_prefix: Optional[str] = None) -> None:
         """
         :param callable: package to be configured
         :param route_prefix:
         :return:
         """
-        configuration_section = maybe_dotted(callable)  # type: ModuleType
+        configuration_section: ModuleType = maybe_dotted(callable)
         old_namespace = self.router.change_namespace(configuration_section.__package__)
 
         module = self.inspect.getmodule(configuration_section)
         if module is configuration_section:
             try:
                 configuration_section = getattr(module, 'includeme')
-                log.debug('Including {}'.format(callable))
+                log.debug(f'Including {callable}')
             except AttributeError:
                 raise ConfigurationError(
-                    "module {} has no attribute 'includeme'".format(module.__name__)
+                    f"module {module.__name__} has no attribute 'includeme'"
                 )
 
         sourcefile = self.inspect.getsourcefile(configuration_section)
@@ -94,9 +94,9 @@ class Configurator:
         self.router.change_namespace(old_namespace)
         self.router.change_route_prefix(old_route_prefix)
 
-    def include_api_specs(self, pkg_name: str, path: str):
-        log.debug('Including API specs: {}:{}'.format(pkg_name, path))
-        data = pkgutil.get_data(pkg_name, path)  # type: bytes
+    def include_api_specs(self, pkg_name: str, path: str) -> None:
+        log.debug(f'Including API specs: {pkg_name}:{path}')
+        data: bytes = pkgutil.get_data(pkg_name, path)
         data = data.decode('utf-8')
         data = raml.loads(data)
         raml_config = raml.setup_config(None)
@@ -153,7 +153,7 @@ class Configurator:
             )
         return webapp
 
-    def setup_configurator(self):
+    def setup_configurator(self) -> None:
         # Add default renderers
         # ---------------------
         for name, renderer in BUILTIN_RENDERERS.items():

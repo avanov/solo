@@ -11,8 +11,6 @@ from .types import SQLEngine
 log = logging.getLogger(__name__)
 
 
-
-
 def setup_database(loop: asyncio.AbstractEventLoop,
                     config: Config) -> Awaitable[SQLEngine]:
     """ Configure and return sqlalchemy's Engine instance with a

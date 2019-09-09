@@ -200,8 +200,10 @@ def redis_server(
     container_port = redis_ports[0].container_port
     port_bindings = {container_port: (host, host_port)}
 
-    logger.info(f'Linking containerized Redis on port {container_port} '
-                f'to {host}:{host_port}')
+    logger.info(
+        f'Linking containerized Redis on port {container_port} '
+        f'to {host}:{host_port}'
+    )
 
     container_args['host_config'] = docker_client.create_host_config(
         port_bindings=port_bindings

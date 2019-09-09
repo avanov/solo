@@ -1,4 +1,5 @@
 import uuid
+from urllib.parse import  urlparse
 
 from solo.vendor.old_session.old_session import get_session
 

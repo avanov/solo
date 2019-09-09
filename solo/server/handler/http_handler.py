@@ -77,21 +77,29 @@ async def handle_request(
             )
         except (Http4xx, Http3xx) as e:
             status = e.status
+            response_body = b''
+            content_type = b'text/plain'
         except Exception as e:
             status = 500
+            response_body = b'HTTP 500: Internal Server Error'
+            content_type = b'text/plain'
         else:
             status = 200
+            response_body = response.text.encode('utf-8')
+            content_type = response.content_type.encode('utf-8')
 
         await send({
             'type': 'http.response.start',
             'status': status,
             'headers': [
-                [b'content-type', b'text/plain'],
+                [b'content-type', content_type],
             ]
         })
         await send({
             'type': 'http.response.body',
-            'body': b'Hello, from uviapp!',
+            'body': response_body,
+            # indicates end of response stream
+            'more_body': False
         })
 
 
