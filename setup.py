@@ -13,7 +13,7 @@ with (HERE / 'requirements' / 'minimal.txt').open() as f:
     requires = []
     for row in rows:
         row = row.strip()
-        if row and not (row.startswith('#') or row.startswith('http')):
+        if row and not (row.startswith('#') or row.startswith('https')):
             requires.append(row)
 
 

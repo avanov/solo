@@ -2,3 +2,4 @@ Sphinx>=2.1.2,<2.2
 invoke==1.2.0
 wheel>=0.33.1,<0.34
 piprot==0.9.10
+Nuitka>=0.6.7,<0.7

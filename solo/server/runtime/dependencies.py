@@ -6,6 +6,7 @@ from pyrsistent import pmap
 from solo.configurator.registry import Registry
 from solo.server.db.types import SQLEngine
 from solo.server.request import Request
+from solo.types import IO
 from solo.vendor.old_session.old_session import Session, SessionStore
 
 
@@ -20,7 +21,7 @@ def get_handler_deps(
     runtime: Runtime,
     handler: Callable,
     request: Request,
-) -> Tuple[Mapping[str, Awaitable], Mapping[str, Any]]:
+) -> Tuple[Mapping[str, IO], Mapping[str, Any]]:
     """ Returns a tuple of awaitable coroutine dependencies and rest dependencies.
     """
     hints = get_type_hints(handler)

@@ -6,13 +6,13 @@ import aiopg.sa
 
 from solo.config.app import Config
 from .types import SQLEngine
-
+from ...types import IO
 
 log = logging.getLogger(__name__)
 
 
 def setup_database(loop: asyncio.AbstractEventLoop,
-                    config: Config) -> Awaitable[SQLEngine]:
+                    config: Config) -> IO[SQLEngine]:
     """ Configure and return sqlalchemy's Engine instance with a
     built-in connection pool.
     """

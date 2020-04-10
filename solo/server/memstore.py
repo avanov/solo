@@ -1,13 +1,13 @@
 import asyncio
-from typing import Awaitable
 
 import aioredis
 
 from ..config.app import Config
+from ..types import IO
 
 
 def init_pool(loop: asyncio.AbstractEventLoop,
-              config: Config) -> Awaitable[aioredis.commands.Redis]:
+              config: Config) -> IO[aioredis.commands.Redis]:
     c = config.redis
     address = (c.host, c.port)
     pool = aioredis.create_redis_pool(

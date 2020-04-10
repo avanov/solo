@@ -5,6 +5,7 @@ import routes
 import aioredis
 
 from solo.server.db import SQLEngine
+from solo.types import IO
 
 logger = logging.getLogger(__name__)
 
@@ -12,5 +13,5 @@ logger = logging.getLogger(__name__)
 class App(NamedTuple):
     route_map: routes.Mapper
     url_gen: routes.URLGenerator
-    dbengine: Awaitable[SQLEngine]
-    memstore: Awaitable[aioredis.commands.Redis]
+    dbengine: IO[SQLEngine]
+    memstore: IO[aioredis.commands.Redis]

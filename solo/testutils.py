@@ -5,6 +5,7 @@ from pyrsistent import pmap
 
 from solo.server.io_manager import AIOManager
 from.server.definitions import HttpMethod
+from .types import IO
 
 
 class TestClient:
@@ -14,7 +15,7 @@ class TestClient:
 
     def get(self, url: str,
                    headers: Mapping[str, str] = pmap({}),
-                   payload: Optional[Type] = None) -> Awaitable[Tuple[int, Mapping, Iterator]]:
+                   payload: Optional[Type] = None) -> IO[Tuple[int, Mapping, Iterator]]:
         return self.make_request(
             url=url,
             method=HttpMethod.GET,

@@ -16,6 +16,7 @@ from pyrsistent import pmap
 from solo.server.request import Request
 from solo.server.response import Response
 from solo.server.statuses import HttpStatus
+from solo.types import IO
 
 
 class Session(MutableMapping):
@@ -149,7 +150,7 @@ async def new_session(request: Request):
     return session
 
 
-def setup(storage: 'SessionStore') -> Callable[[Request], Awaitable[Session]]:
+def setup(storage: 'SessionStore') -> Callable[[Request], IO[Session]]:
     async def factory(request: Request):
         request[STORAGE_KEY] = storage
         raise_response = False

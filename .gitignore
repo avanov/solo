@@ -12,6 +12,9 @@ dist/
 *.egg-info/
 .DS_Store
 
+.venv/
+.local/
+
 docs/_build
 
 *nose*

@@ -13,6 +13,7 @@ from solo.server.runtime.dependencies import get_handler_deps
 from ..request import Request
 from ..definitions import HttpMethod, ScopeType, ScopeScheme, ScopeServer, Scope
 from solo.server.runtime.dependencies import Runtime
+from ...types import IO
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +22,8 @@ async def handle_request(
     runtime: Runtime,
     route_map: routes.Mapper,
     scope: Mapping[str, Any],
-    receive: Callable[[], Awaitable],
-    send: Callable[[Mapping[str, Any]], Awaitable]
+    receive: Callable[[], IO],
+    send: Callable[[Mapping[str, Any]], IO]
 ) -> None:
     scope_ = Scope(
         type=ScopeType(scope['type']),

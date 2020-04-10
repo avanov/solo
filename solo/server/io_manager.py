@@ -1,6 +1,7 @@
 import logging
 from typing import NamedTuple, Optional, Mapping, Awaitable, Callable, TypeVar, Any
 
+from solo.types import IO
 from solo.vendor.old_session.old_session import SessionStore
 
 from solo.configurator.registry import Registry
@@ -26,7 +27,7 @@ class AIOManager:
         self.loop = loop
         self.server = None
         self.runtime: Optional[Runtime] = None
-        self.do_io: Callable[[Awaitable[T]], T] = self.loop.run_until_complete
+        self.do_io: Callable[[IO[T]], T] = self.loop.run_until_complete
 
     def create_server(self, ssl: Optional[bool] = None):
         log.debug('Creating a new web server...')
@@ -93,9 +94,9 @@ class AIOManager:
 
     async def __call__(self,
         scope: Mapping[str, str],
-        receive: Callable[[], Awaitable],
-        send: Callable[[Mapping[str, Any]], Awaitable]
-    ) -> Awaitable:
+        receive: Callable[[], IO],
+        send: Callable[[Mapping[str, Any]], IO]
+    ) -> IO:
         return await handle_request ( runtime   = self.runtime
                                     , route_map = self.app.route_map
                                     , scope     = scope
