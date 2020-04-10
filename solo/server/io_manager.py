@@ -91,6 +91,7 @@ class AIOManager:
             log.debug('Stopping server...')
             self.server.close()
             self.do_io(self.server.wait_closed())
+        log.debug('Done.')
 
     async def __call__(self,
         scope: Mapping[str, str],

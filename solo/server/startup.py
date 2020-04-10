@@ -46,6 +46,7 @@ def application_entrypoint(loop: asyncio.AbstractEventLoop,
             ignore=pvector(['.__pycache__', f'{user_app.name}.migrations'])
         )
     app, registry = configurator.complete()
+    log.debug(f'Serving on http://{config.server.host}:{config.server.port}')
     return AIOManager ( loop     = loop
                       , app      = app
                       , registry = registry )

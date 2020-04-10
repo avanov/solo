@@ -1,6 +1,6 @@
 from enum import Enum
 
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 
 from pyrsistent import pmap, pvector
 from pyrsistent.typing import PVector, PMap

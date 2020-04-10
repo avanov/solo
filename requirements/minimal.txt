@@ -12,5 +12,5 @@ ramlfications==0.1.9
 venusian==1.2.0
 # for the parser
 inflection>=0.4,<0.5
-typeit==0.22.0
+typeit==0.23.0
 routes==2.4.1

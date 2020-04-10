@@ -40,6 +40,8 @@ apps:
           scope:
             - "user:email"
             - public_repo
+  - name: testapp
+    url_prefix: /
 
 testing:
   docker_pull: true

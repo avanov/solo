@@ -7,7 +7,7 @@ import routes
 from pyrsistent import pmap
 
 from solo.server.response import Response
-from solo.server.statuses import Http4xx, Http3xx, NotFound
+from solo.server.statuses import Http4xx, Http3xx, NotFound, Redirect
 from solo.server.definitions import MatchedRoute, PredicatedHandler
 from solo.server.runtime.dependencies import get_handler_deps
 from ..request import Request
@@ -141,7 +141,17 @@ async def call_matched_controller(
             # https://docs.python.org/3/library/asyncio-task.html#asyncio.gather
             collected_deps = dict(zip(coro_deps.keys(), collected))
 
-            response = await handler(*handler_args, **handler_deps, **collected_deps)
+            try:
+                response_call = handler(*handler_args, **handler_deps, **collected_deps)
+                if asyncio.iscoroutine(response_call):
+                    response = await response_call
+                else:
+                    response = response_call
+            except Redirect:
+                raise
+
+            except Exception as e:
+                logger.exception(f'Error while serving {handler.__module__}.{handler.__name__}: {e}')
 
             if isinstance(response, Response):
                 # Do not process standard responses

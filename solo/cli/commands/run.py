@@ -26,7 +26,8 @@ def entrypoint_cli_run(args: argparse.Namespace,
         uvicorn.run(
             app_manager,
             debug=solo_cfg.debug,
-            logger=logging.getLogger(f'solo:runtime:{solo_cfg.server.runner.value}'),
+            log_config=dict(solo_cfg.logging),
+            log_level='debug',
             loop=solo_cfg.server.event_loop.value,
             host=solo_cfg.server.host,
             port=solo_cfg.server.port

@@ -24,6 +24,7 @@ stdenv.mkDerivation {
     buildInputs = [
         # see https://nixos.org/nixos/packages.html
         # Python distribution
+        cookiecutter
         python38Full
         python38Packages.virtualenv
         python38Packages.wheel
@@ -43,7 +44,9 @@ stdenv.mkDerivation {
         which
     ] ++ macOsDeps;
     shellHook = ''
-        # set SOURCE_DATE_EPOCH so that we can use python wheels
+        # Set SOURCE_DATE_EPOCH so that we can use python wheels.
+        # This compromises immutability, but is what we need
+        # to allow package installs from PyPI
         export SOURCE_DATE_EPOCH=$(date +%s)
 
         VENV_DIR=$PWD/.venv
@@ -52,12 +55,18 @@ stdenv.mkDerivation {
         export PYTHONPATH=""
         export LANG=en_US.UTF-8
 
-        # https://python-poetry.org/docs/configuration/
         export PIP_CACHE_DIR=$PWD/.local/pip-cache
 
         # Setup virtualenv
         if [ ! -d $VENV_DIR ]; then
-            virtualenv $PWD/.venv
+            virtualenv $VENV_DIR
+            $VENV_DIR/bin/python -m pip install -r requirements/minimal.txt
+            $VENV_DIR/bin/python -m pip install -r requirements/local.txt
+            $VENV_DIR/bin/python -m pip install -r requirements/test.txt
         fi
+
+        # Dirty fix for Linux systems
+        # https://nixos.wiki/wiki/Packaging/Quirks_and_Caveats
+        export LD_LIBRARY_PATH=${stdenv.cc.cc.lib}/lib/:$LD_LIBRARY_PATH
     '';
 }

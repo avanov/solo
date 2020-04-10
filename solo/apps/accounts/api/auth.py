@@ -25,7 +25,7 @@ class BackendAuthenticationHandler:
     ) -> None:
         provider = reg.settings['solo.apps.accounts'][self.context['provider'].value]
 
-        url = await provider.authorize(sess)
+        url = await provider.authborize(sess)
         raise Redirect(location=url)
 
 
