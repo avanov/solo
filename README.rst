@@ -25,13 +25,6 @@
 **Development status: Early Alpha**
 
 
-Host prerequisites
-------------------
-
-* Vagrant >= 1.8
-* Python 2.7.x (required for Ansible CLI);
-* Ansible >= 2.0
-
 Bootstrapping development environment
 -------------------------------------
 

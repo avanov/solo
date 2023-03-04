@@ -5,6 +5,7 @@ import logging
 import logging.config
 import sys
 from pathlib import Path
+from typing import Optional, Sequence
 
 from pkg_resources import get_distribution
 
@@ -14,7 +15,9 @@ from solo.integrations.alembic import integrate_alembic_cli
 from .util import parse_app_config, parse_compose_config
 
 
-def main(args=None, stdout=None) -> None:
+def main(args: Optional[Sequence[str]] = None) -> None:
+    """ Main entry point for the CLI utility
+    """
     parser = argparse.ArgumentParser(description='Manage Solo projects.')
     parser.add_argument('-V', '--version', action='version',
                         version=f'Solo {get_distribution("solo").version}')
@@ -47,7 +50,7 @@ def main(args=None, stdout=None) -> None:
     # Set up and run
     # --------------
     decide_event_loop_policy(solo_cfg)
-    logging.config.dictConfig(solo_cfg.logging)
+    logging.config.dictConfig(dict(solo_cfg.logging))
     args.func(args, solo_cfg)
 
 
