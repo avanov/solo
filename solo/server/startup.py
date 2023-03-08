@@ -20,7 +20,7 @@ def application_entrypoint(loop: asyncio.AbstractEventLoop,
     """
     # Setup database connection pool
     # ------------------------------
-    dbengine = db.setup_database(loop, config)
+    dbengine = db.setup_database(config)
 
     # Setup memory store
     # ------------------
@@ -33,7 +33,7 @@ def application_entrypoint(loop: asyncio.AbstractEventLoop,
     app = App(
         route_map=url_gen.mapper,
         url_gen=url_gen,
-        dbengine=dbengine,
+        db_engine=dbengine,
         memstore=memstore_pool,
     )
     configurator = Configurator(app, config=config)

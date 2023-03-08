@@ -13,5 +13,5 @@ logger = logging.getLogger(__name__)
 class App(NamedTuple):
     route_map: routes.Mapper
     url_gen: routes.URLGenerator
-    dbengine: IO[SQLEngine]
+    db_engine: SQLEngine
     memstore: IO[aioredis.Redis]

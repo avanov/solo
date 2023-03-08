@@ -1,13 +1,16 @@
 import logging
-import sqlalchemy as sa
-import sqlalchemy.types as sa_types
+
 from enum import Enum as PythonEnum
+
+import sqlalchemy.types as sa_types
+from sqlalchemy.ext.asyncio import AsyncEngine
+
 from solo.configurator.config.sums import SumType
 
 
 log = logging.getLogger(__name__)
 
-SQLEngine = sa.Engine
+SQLEngine = AsyncEngine
 
 
 class PythonMappedEnum(sa_types.TypeDecorator):

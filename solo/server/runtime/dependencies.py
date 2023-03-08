@@ -41,7 +41,7 @@ T = TypeVar('T')
 
 DEPENDENCIES: Mapping[Type[T], Callable[[Runtime], T]] = pmap({
     Registry: lambda runtime: runtime.registry,
-    SQLEngine: lambda runtime: runtime.dbengine,
+    SQLEngine: lambda runtime: runtime.db_engine,
     Session: lambda runtime: lambda request: runtime.session_storage.load_session(request),
     SessionStore: lambda runtime: runtime.session_storage,
 })

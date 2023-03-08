@@ -44,7 +44,7 @@ class AIOManager:
         log.info('Entering application IO context...')
         # Setup sessions middleware
         # -------------------------
-        db_engine = self.app.dbengine
+        db_engine = self.app.db_engine
         memstore = self.do_io(self.app.memstore)
 
         session_storage = SessionStore(
@@ -78,6 +78,9 @@ class AIOManager:
         """
         log.debug('Exiting application IO context...')
         if self.runtime:
+            log.debug('Closing database connections...')
+            self.do_io(self.runtime.dbengine.dispose())
+
             # Close memstore pool
             log.debug('Closing memory store connections...')
             self.do_io(self.runtime.memstore.close())

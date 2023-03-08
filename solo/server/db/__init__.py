@@ -3,6 +3,7 @@ import logging
 from typing import Awaitable
 
 import sqlalchemy as sa
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
 
 from solo.config.app import Config
 from .types import SQLEngine
@@ -11,8 +12,7 @@ from ...types import IO
 log = logging.getLogger(__name__)
 
 
-def setup_database(loop: asyncio.AbstractEventLoop,
-                    config: Config) -> SQLEngine:
+def setup_database(config: Config) -> AsyncEngine:
     """ Configure and return sqlalchemy's Engine instance with a
     built-in connection pool.
     """
@@ -25,7 +25,7 @@ def setup_database(loop: asyncio.AbstractEventLoop,
         port=db_conf.port,
         dbname=db_conf.dbname
     )
-    engine = sa.create_engine(
+    engine = create_async_engine(
         url=url,
         pool_size=db_conf.min_connections,
         max_overflow=db_conf.max_connections,
