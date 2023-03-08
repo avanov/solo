@@ -24,7 +24,7 @@ def application_entrypoint(loop: asyncio.AbstractEventLoop,
 
     # Setup memory store
     # ------------------
-    memstore_pool = memstore.init_pool(loop, config)
+    memstore_pool = memstore.init_pool(config)
     url_gen = routes.URLGenerator(
         routes.Mapper(),
         {'SERVER_NAME': config.server.host,

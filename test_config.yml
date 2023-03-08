@@ -14,7 +14,7 @@ postgresql:
   user: solo
   dbname: solo
   password: solo
-  min_connections: 1
+  min_connections: 4
   max_connections: 10
 
 redis:
