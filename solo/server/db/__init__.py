@@ -2,7 +2,7 @@ import asyncio
 import logging
 from typing import Awaitable
 
-import aiopg.sa
+import sqlalchemy as sa
 
 from solo.config.app import Config
 from .types import SQLEngine
@@ -25,7 +25,7 @@ def setup_database(loop: asyncio.AbstractEventLoop,
         port=dbconf.port,
         dbname=dbconf.dbname
     )
-    engine = aiopg.sa.create_engine(
+    engine = sa.create_engine(
         dsn=dsn,
         minsize=dbconf.min_connections,
         maxsize=dbconf.max_connections,

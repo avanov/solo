@@ -1,13 +1,13 @@
 import logging
+import sqlalchemy as sa
 import sqlalchemy.types as sa_types
 from enum import Enum as PythonEnum
-import aiopg.sa
 from solo.configurator.config.sums import SumType
 
 
 log = logging.getLogger(__name__)
 
-SQLEngine = aiopg.sa.Engine
+SQLEngine = sa.Engine
 
 
 class PythonMappedEnum(sa_types.TypeDecorator):

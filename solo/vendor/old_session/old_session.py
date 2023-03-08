@@ -10,7 +10,7 @@ from collections.abc import MutableMapping
 from http.cookies import SimpleCookie
 from typing import Optional, Awaitable, Dict, Any, Callable, Mapping
 
-import aioredis
+from redis import asyncio as aioredis
 from pyrsistent import pmap
 
 from solo.server.request import Request
@@ -178,7 +178,7 @@ class SessionStore:
     """Redis storage"""
 
     def __init__(self,
-                 redis_pool: aioredis.commands.Redis, *,
+                 redis_pool: aioredis.Redis, *,
                  cookie_name: str = "solo-session",
                  secure: bool = None,
                  httponly: bool = True,
